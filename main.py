@@ -42,7 +42,8 @@ def update_map():
 
 def render_world():
     clear_canvas()
-
+    for game_object in world:
+        game_object.draw()
     update_canvas()
     pass
 
