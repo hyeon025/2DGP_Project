@@ -5,7 +5,15 @@ def reset_canvas():
 
 
 def handle_events():
-    pass
+    global Play
+    events = get_events()
+    for event in events:
+        if event.type == SDL_QUIT:
+            Play = False
+        elif event.type == SDL_KEYDOWN:
+            if event.key == SDLK_ESCAPE:
+                Play = False
+
 
 def update_map():
     pass
