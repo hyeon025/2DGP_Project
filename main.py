@@ -17,6 +17,11 @@ def reset_canvas():
 
     Play = True
 
+    global world, current_map
+
+    world = []
+    player = Player(Player_job[current_job])
+    world.append(player)
     pass
 
 
