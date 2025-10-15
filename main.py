@@ -20,9 +20,12 @@ def update_map():
 
 
 def render_world():
+    clear_canvas()
+
+    update_canvas()
     pass
 
-open_canvas()
+open_canvas(1200,900)
 
 reset_canvas()
 
