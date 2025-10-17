@@ -1,16 +1,9 @@
 from pico2d import *
 
+from player import Player
+
 Player_job = {"alchemist":"asset/Character/alchemist_0.png","assassin":"asset/Character/assassin_0.png","shooter":"asset/Character/Shooter_0.png"}
 current_job = "alchemist"
-
-class Player:
-    def __init__(self, job):
-        self.x = 600
-        self.y = 300
-        self.job = load_image(job)
-
-    def draw(self):
-        self.job.clip_draw(0, 80, 40, 40, self.x, self.y, 80, 80)
 
 def reset_canvas():
     global Play
