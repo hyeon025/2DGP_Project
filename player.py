@@ -9,3 +9,9 @@ class Player:
 
     def draw(self):
         self.job.clip_draw(0, 80, 40, 40, self.x, self.y, 80, 80)
+
+    def update(self):
+        pass
+
+    def handle_events(self):
+        pass
