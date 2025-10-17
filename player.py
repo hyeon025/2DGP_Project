@@ -1,14 +1,16 @@
 from pico2d import load_image
 
+from state_machine import StateMachine
+
 
 class Idle:
     def __init__(self, player):
         self.player = player
 
-    def enter(self):
-        pass
+    def enter(self,e):
+        self.player.dir = 0
 
-    def exit(self):
+    def exit(self,e):
         pass
 
     def do(self):
@@ -25,8 +27,15 @@ class Player:
 
         self.IDLE = Idle(self)
 
+        self.state_machine = StateMachine(
+            self.IDLE,
+            {
+            self.IDLE:{}
+            })
+
+
     def draw(self):
-        self.job.clip_draw(0, 80, 40, 40, self.x, self.y, 80, 80)
+        self.state_machine.draw()
 
     def update(self):
         pass

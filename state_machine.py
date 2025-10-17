@@ -4,7 +4,7 @@ from event_to_string import event_to_string
 class StateMachine:
     def __init__(self,start_state,rules):
         self.current_state = start_state
-        self.current_state.enter(('start',0))
+        self.current_state.enter(('START',0))
         self.rules = rules
 
     def update(self):
