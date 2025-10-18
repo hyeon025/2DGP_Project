@@ -20,10 +20,10 @@ def handle_events():
     for event in events:
         if event.type == SDL_QUIT:
             Play = False
-        elif event.type == SDL_KEYDOWN:
-            if event.key == SDLK_ESCAPE:
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
                 Play = False
-
+        else:
+            player.handle_event(event)
 
 def update_map():
     for o in world:
@@ -50,8 +50,6 @@ while Play:
     update_map()
 
     render_world()
-
-    delay(0.05)
 
 
 close_canvas()

@@ -1,14 +1,70 @@
 from pico2d import load_image
-
+from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s
 from state_machine import StateMachine
 
+
+def d_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_d
+def d_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_d
+def a_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_a
+def a_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_a
+def w_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_w
+def w_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_w
+def s_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_s
+def s_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_s
+
+class Walk:
+    def __init__(self, player):
+        self.player = player
+
+    def enter(self,e):
+        if d_down(e):
+            self.player.dir_x += 1
+            self.player.face_dir = 1
+        elif d_up(e):
+            self.player.dir_x -= 1
+        elif a_down(e):
+            self.player.dir_x -= 1
+            self.player.face_dir = -1
+        elif a_up(e):
+            self.player.dir_x += 1
+        elif w_down(e):
+            self.player.dir_y += 1
+        elif w_up(e):
+            self.player.dir_y -= 1
+        elif s_down(e):
+            self.player.dir_y -= 1
+        elif s_up(e):
+            self.player.dir_y += 1
+
+    def exit(self,e):
+        pass
+
+    def do(self):
+        self.player.frame = (self.player.frame + 1) % 8
+        self.player.x += self.player.dir_x * 0.5
+        self.player.y += self.player.dir_y * 0.5
+
+    def draw(self):
+        if self.player.face_dir == 1:
+            self.player.job.clip_draw(self.player.frame * 40, 40, 40, 40, self.player.x, self.player.y, 80, 80)
+        else:
+            self.player.job.clip_composite_draw(self.player.frame * 40, 40, 40, 40, 0,'h', self.player.x, self.player.y, 80, 80)
 
 class Idle:
     def __init__(self, player):
         self.player = player
 
     def enter(self,e):
-        self.player.dir = 0
+        self.player.dir_x = 0
+        self.player.dir_y = 0
 
     def exit(self,e):
         pass
@@ -20,7 +76,7 @@ class Idle:
         if self.player.face_dir == 1:
             self.player.job.clip_draw(self.player.frame * 40, 80, 40, 40, self.player.x, self.player.y, 80, 80)
         else:
-            self.player.job.composite_draw(self.player.frame * 40, 80, 40, 40, 0,'h', self.player.x, self.player.y, 80, 80)
+            self.player.job.clip_composite_draw(self.player.frame * 40, 80, 40, 40, 0,'h', self.player.x, self.player.y, 80, 80)
 
 class Player:
     def __init__(self, job):
@@ -28,15 +84,20 @@ class Player:
         self.y = 300
         self.job = load_image(job)
         self.face_dir = 1
-        self.dir = 0
+        self.dir_x = 0
+        self.dir_y = 0
         self.frame = 0
 
         self.IDLE = Idle(self)
+        self.WALK = Walk(self)
 
         self.state_machine = StateMachine(
             self.IDLE,
             {
-            self.IDLE:{}
+            self.IDLE:{d_down: self.WALK, a_down: self.WALK, w_down: self.WALK, s_down: self.WALK
+                       , d_up:  self.WALK, a_up:  self.WALK, w_up:  self.WALK, s_up:  self.WALK},
+            self.WALK:{d_up: self.IDLE, a_up: self.IDLE, w_up: self.IDLE, s_up: self.IDLE,
+                        d_down: self.IDLE, a_down: self.IDLE, w_down: self.IDLE, s_down: self.IDLE}
             })
 
 
@@ -46,5 +107,5 @@ class Player:
     def update(self):
         self.state_machine.update()
 
-    def handle_events(self):
-        pass
+    def handle_event(self,event):
+        self.state_machine.handle_state_events(('INPUT', event))
