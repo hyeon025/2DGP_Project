@@ -6,11 +6,7 @@ Player_job = {"alchemist":"asset/Character/alchemist_0.png","assassin":"asset/Ch
 current_job = "alchemist"
 
 def reset_canvas():
-    global Play
-
-    Play = True
-
-    global world, current_map
+    global world, player
 
     world = []
     player = Player(Player_job[current_job])
@@ -30,7 +26,9 @@ def handle_events():
 
 
 def update_map():
-   pass
+    for o in world:
+        o.update()
+    pass
 
 
 def render_world():

@@ -14,16 +14,22 @@ class Idle:
         pass
 
     def do(self):
-        pass
+        self.player.frame = (self.player.frame + 1) % 8
 
     def draw(self):
-        self.player.job.clip_draw(0, 80, 40, 40, self.player.x, self.player.y, 80, 80)
+        if self.player.face_dir == 1:
+            self.player.job.clip_draw(self.player.frame * 40, 80, 40, 40, self.player.x, self.player.y, 80, 80)
+        else:
+            self.player.job.composite_draw(self.player.frame * 40, 80, 40, 40, 0,'h', self.player.x, self.player.y, 80, 80)
 
 class Player:
     def __init__(self, job):
         self.x = 600
         self.y = 300
         self.job = load_image(job)
+        self.face_dir = 1
+        self.dir = 0
+        self.frame = 0
 
         self.IDLE = Idle(self)
 
@@ -38,7 +44,7 @@ class Player:
         self.state_machine.draw()
 
     def update(self):
-        pass
+        self.state_machine.update()
 
     def handle_events(self):
         pass
