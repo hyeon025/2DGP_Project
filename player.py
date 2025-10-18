@@ -20,7 +20,7 @@ def s_down(e):
 def s_up(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_s
 
-class Walk:
+class Walk_xy:
     def __init__(self, player):
         self.player = player
 
@@ -51,6 +51,64 @@ class Walk:
         self.player.frame = (self.player.frame + 1) % 8
         self.player.x += self.player.dir_x * 0.5
         self.player.y += self.player.dir_y * 0.5
+
+    def draw(self):
+        if self.player.face_dir == 1:
+            self.player.job.clip_draw(self.player.frame * 40, 40, 40, 40, self.player.x, self.player.y, 80, 80)
+        else:
+            self.player.job.clip_composite_draw(self.player.frame * 40, 40, 40, 40, 0,'h', self.player.x, self.player.y, 80, 80)
+
+
+class Walk_y:
+    def __init__(self, player):
+        self.player = player
+
+    def enter(self,e):
+        if w_down(e):
+            self.player.dir_y += 1
+        elif w_up(e):
+            self.player.dir_y -= 1
+        elif s_down(e):
+            self.player.dir_y -= 1
+        elif s_up(e):
+            self.player.dir_y += 1
+
+    def exit(self,e):
+        pass
+
+    def do(self):
+        self.player.frame = (self.player.frame + 1) % 8
+        self.player.y += self.player.dir_y * 0.5
+
+    def draw(self):
+        if self.player.face_dir == 1:
+            self.player.job.clip_draw(self.player.frame * 40, 40, 40, 40, self.player.x, self.player.y, 80, 80)
+        else:
+            self.player.job.clip_composite_draw(self.player.frame * 40, 40, 40, 40, 0,'h', self.player.x, self.player.y, 80, 80)
+
+
+class Walk_x:
+    def __init__(self, player):
+        self.player = player
+
+    def enter(self,e):
+        if d_down(e):
+            self.player.dir_x += 1
+            self.player.face_dir = 1
+        elif d_up(e):
+            self.player.dir_x -= 1
+        elif a_down(e):
+            self.player.dir_x -= 1
+            self.player.face_dir = -1
+        elif a_up(e):
+            self.player.dir_x += 1
+
+    def exit(self,e):
+        pass
+
+    def do(self):
+        self.player.frame = (self.player.frame + 1) % 8
+        self.player.x += self.player.dir_x * 0.5
 
     def draw(self):
         if self.player.face_dir == 1:
@@ -89,15 +147,21 @@ class Player:
         self.frame = 0
 
         self.IDLE = Idle(self)
-        self.WALK = Walk(self)
+        self.WALK_X = Walk_x(self)
+        self.WALK_Y = Walk_y(self)
+        self.WALK_XY = Walk_xy(self)
 
         self.state_machine = StateMachine(
             self.IDLE,
             {
-            self.IDLE:{d_down: self.WALK, a_down: self.WALK, w_down: self.WALK, s_down: self.WALK
-                       , d_up:  self.WALK, a_up:  self.WALK, w_up:  self.WALK, s_up:  self.WALK},
-            self.WALK:{d_up: self.IDLE, a_up: self.IDLE, w_up: self.IDLE, s_up: self.IDLE,
-                        d_down: self.IDLE, a_down: self.IDLE, w_down: self.IDLE, s_down: self.IDLE}
+            self.IDLE:{d_down: self.WALK_X, a_down: self.WALK_X, w_down: self.WALK_Y, s_down: self.WALK_Y
+                       , d_up:  self.WALK_X, a_up:  self.WALK_X, w_up:  self.WALK_Y, s_up: self.WALK_Y},
+            self.WALK_X:{d_up: self.IDLE, a_up: self.IDLE, w_up: self.WALK_XY, s_up: self.WALK_XY,
+                        d_down: self.IDLE, a_down: self.IDLE, w_down: self.WALK_XY, s_down: self.WALK_XY},
+            self.WALK_Y:{w_up: self.IDLE, s_up: self.IDLE, d_up: self.WALK_XY, a_up: self.WALK_XY,
+                         w_down: self.IDLE, s_down: self.IDLE, d_down: self.WALK_XY,a_down: self.WALK_XY},
+            self.WALK_XY:{d_up: self.WALK_Y, a_up: self.WALK_Y, w_up: self.WALK_X, s_up: self.WALK_X,
+                          d_down: self.WALK_Y, a_down: self.WALK_Y, w_down: self.WALK_X, s_down: self.WALK_X}
             })
 
 
