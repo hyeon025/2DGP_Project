@@ -1,6 +1,7 @@
 from pico2d import *
 
-from job import Player_job, current_job
+from job import Player_job, current_job, Job
+from map import Game_Map, Map, current_map
 from player import Player
 
 
@@ -8,6 +9,9 @@ def reset_canvas():
     global world, player
 
     world = []
+    map = Game_Map(Map[current_map])
+
+    world.append(map)
     player = Player(Player_job[current_job])
     world.append(player)
     pass

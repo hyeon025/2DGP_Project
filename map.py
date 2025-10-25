@@ -8,10 +8,18 @@ current_room = "Map_1"
 
 class Game_Map:
     def __init__(self, current_bg):
-        self.map_image = load_image(current_bg)
-
+        if current_map == "Lobby":
+            self.background = load_image(current_bg)
+        else:
+            self.background = load_image(Room[current_room])
     def update(self):
         pass
 
     def draw(self):
-        self.map_image.draw(600, 450,1200,900)
+        if current_map == "Lobby":
+            self.background.draw(600, 450, 1200, 900)
+        else:
+            if current_room == "Map_1" or current_room == "Map_2":
+                self.background.draw(600, 400, 1100, 900)
+            elif current_room == "Map_3" or current_room == "Map_4":
+                self.background.draw(600, 400, 1000, 1000)
