@@ -1,6 +1,6 @@
 from pico2d import *
 
-from job import Player_job, current_job, Job
+from job import Player_job, current_job
 from map import Game_Map, Map, current_map
 from player import Player
 
