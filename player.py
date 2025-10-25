@@ -1,5 +1,8 @@
 from pico2d import load_image
 from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s
+
+from lobby import lobbyCollision
+from map import current_map
 from state_machine import StateMachine
 
 
@@ -34,6 +37,8 @@ class Walk:
         self.player.frame = (self.player.frame + 1) % 8
         self.player.x += self.player.dir_x * 0.5
         self.player.y += self.player.dir_y * 0.5
+        if current_map == "Lobby":
+            lobbyCollision(self.player)
 
         if not any(self.player.keys.values()) or (self.player.dir_x == 0 and self.player.dir_y == 0):
             self.player.state_machine.current_state = self.player.IDLE
