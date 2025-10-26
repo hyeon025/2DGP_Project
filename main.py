@@ -1,5 +1,5 @@
 from pico2d import *
-
+import time
 from job import Player_job, current_job
 from map import Game_Map, Map, current_map
 from player import Player
@@ -31,7 +31,6 @@ def handle_events():
 def update_map():
     for o in world:
         o.update()
-    pass
 
 
 def render_world():
@@ -44,10 +43,14 @@ def render_world():
 open_canvas(1200,900)
 
 reset_canvas()
-
+last_time = time.time()
 Play = True
 
 while Play:
+    current_time = time.time()
+    dt = current_time - last_time
+    last_time = current_time
+
     handle_events()
 
     update_map()

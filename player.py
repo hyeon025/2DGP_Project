@@ -26,6 +26,7 @@ def s_up(e):
 class Walk:
     def __init__(self, player):
         self.player = player
+        self.frame_time = 0
 
     def enter(self, e):
         self.update_key_and_dir(e)
@@ -34,7 +35,11 @@ class Walk:
         pass
 
     def do(self):
-        self.player.frame = (self.player.frame + 1) % 8
+        self.frame_time += 0.016
+        if self.frame_time > 0.5:
+            self.player.frame = (self.player.frame + 1) % 8
+            self.frame_time = 0
+
         self.player.x += self.player.dir_x * 0.5
         self.player.y += self.player.dir_y * 0.5
         if current_map == "Lobby":
@@ -90,6 +95,7 @@ class Walk:
 class Idle:
     def __init__(self, player):
         self.player = player
+        self.frame_time = 0
 
     def enter(self, e):
         if e[0] == 'INPUT':
@@ -103,7 +109,10 @@ class Idle:
         pass
 
     def do(self):
-        self.player.frame = (self.player.frame + 1) % 8
+        self.frame_time += 0.016
+        if self.frame_time > 0.5:
+            self.player.frame = (self.player.frame + 1) % 8
+            self.frame_time = 0
 
     def draw(self):
         if self.player.face_dir == 1:
