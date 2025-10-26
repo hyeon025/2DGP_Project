@@ -1,6 +1,6 @@
 from pico2d import *
 import time
-from job import Player_job, current_job
+from job import Player_job, current_job, Job
 from map import Game_Map, Map, current_map
 from player import Player
 from particle import Particle
@@ -12,6 +12,8 @@ def reset_canvas():
     world = []
     map = Game_Map(Map[current_map])
     world.append(map)
+    job = Job()
+    world.append(job)
     particle = Particle()
     world.append(particle)
     player = Player(Player_job[current_job])
