@@ -113,8 +113,8 @@ class Idle:
 
     def handle_space(self, e):
         if current_map == "Lobby":
-            from lobby import Selectjob
-            Selectjob()
+            from job import Selectjob
+            Selectjob(self.player)
 
     def exit(self, e):
         pass

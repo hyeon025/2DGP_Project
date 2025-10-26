@@ -5,6 +5,23 @@ from pico2d import load_image
 Player_job = {"alchemist": "asset/Character/alchemist_0.png", "assassin": "asset/Character/assassin_0.png", "shooter": "asset/Character/Shooter_0.png"}
 current_job = "alchemist"
 
+def Selectjob(player):
+    global current_job
+    for x, y in [(300, 340), (600, 340), (900, 340)]:
+        dx = abs(player.x - x)
+        dy = abs(player.y - y)
+        distance = (dx ** 2 + dy ** 2) ** 0.5
+
+        if distance < 50:
+            if x == 300:
+                current_job = "alchemist"
+            elif x == 600:
+                current_job = "assassin"
+            elif x == 900:
+                current_job = "officer"
+
+            player.change_job(Player_job[current_job])
+
 class Job:
     def __init__(self):
         self.alchemist = load_image('asset/Character/alchemist_0.png')
