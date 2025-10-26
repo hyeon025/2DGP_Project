@@ -8,3 +8,6 @@ def lobbyCollision(player):
         player.y = 40
     if (player.y >= 720):
         player.y = 720
+
+def Selectjob():
+    pass

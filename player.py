@@ -1,5 +1,5 @@
 from pico2d import load_image
-from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s
+from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s, SDLK_SPACE
 
 from lobby import lobbyCollision
 from map import current_map
@@ -22,6 +22,9 @@ def s_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_s
 def s_up(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_s
+
+def space_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_SPACE
 
 class Walk:
     def __init__(self, player):
@@ -99,11 +102,19 @@ class Idle:
 
     def enter(self, e):
         if e[0] == 'INPUT':
+            if space_down(e):
+                self.handle_space(e)
+                return
             if d_up(e) or a_up(e) or w_up(e) or s_up(e):
                 self.update_key_and_dir(e)
                 return
         self.player.dir_x = 0
         self.player.dir_y = 0
+
+    def handle_space(self, e):
+        if current_map == "Lobby":
+            from lobby import Selectjob
+            Selectjob()
 
     def exit(self, e):
         pass
