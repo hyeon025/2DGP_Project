@@ -3,6 +3,7 @@ import time
 from job import Player_job, current_job
 from map import Game_Map, Map, current_map
 from player import Player
+from particle import Particle
 
 
 def reset_canvas():
@@ -10,8 +11,9 @@ def reset_canvas():
 
     world = []
     map = Game_Map(Map[current_map])
-
     world.append(map)
+    particle = Particle()
+    world.append(particle)
     player = Player(Player_job[current_job])
     world.append(player)
     pass
