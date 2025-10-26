@@ -21,6 +21,7 @@ def Selectjob(player):
                 current_job = "officer"
 
             player.change_job(Player_job[current_job])
+            print(f"직업 변경: {current_job}")
 
 class Job:
     def __init__(self):
