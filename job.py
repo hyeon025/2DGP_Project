@@ -12,7 +12,7 @@ def Selectjob(player):
         dy = abs(player.y - y)
         distance = (dx ** 2 + dy ** 2) ** 0.5
 
-        if distance < 100:
+        if distance < 50:
             if x == 300:
                 current_job = "alchemist"
             elif x == 600:
@@ -21,10 +21,8 @@ def Selectjob(player):
                 current_job = "officer"
             if current_job in Player_job:
                 player.change_job(Player_job[current_job])
-                player.change_job(Player_job[current_job])
                 print(f"직업 변경: {current_job}")
-                return True
-    return False
+
 class Job:
     def __init__(self):
         self.alchemist = load_image('asset/Character/alchemist_0.png')

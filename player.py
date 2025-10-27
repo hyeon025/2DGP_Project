@@ -32,7 +32,16 @@ class Walk:
         self.frame_time = 0
 
     def enter(self, e):
+        if e[0] == 'INPUT':
+            if space_down(e):
+                self.handle_space(e)
+                return
         self.update_key_and_dir(e)
+
+    def handle_space(self, e):
+        if current_map == "Lobby":
+            from job import Selectjob
+            Selectjob(self.player)
 
     def exit(self, e):
         pass
@@ -180,7 +189,8 @@ class Player:
                             d_up: self.WALK, a_up: self.WALK,w_up: self.WALK, s_up: self.WALK
                             ,space_down:  self.IDLE},
                 self.WALK: {d_down: self.WALK, d_up: self.WALK,a_down: self.WALK, a_up: self.WALK,
-                            w_down: self.WALK, w_up: self.WALK,s_down: self.WALK, s_up: self.WALK}
+                            w_down: self.WALK, w_up: self.WALK,s_down: self.WALK, s_up: self.WALK,
+                            space_down: self.WALK}
             })
 
     def draw(self):
