@@ -2,7 +2,7 @@ import time
 
 from pico2d import load_image
 
-Player_job = {"alchemist": "asset/Character/alchemist_0.png", "assassin": "asset/Character/assassin_0.png", "shooter": "asset/Character/Shooter_0.png"}
+Player_job = {"alchemist": "asset/Character/alchemist_0.png", "assassin": "asset/Character/assassin_0.png", "officer": "asset/Character/officer_0.png"}
 current_job = "alchemist"
 
 def Selectjob(player):
@@ -12,17 +12,19 @@ def Selectjob(player):
         dy = abs(player.y - y)
         distance = (dx ** 2 + dy ** 2) ** 0.5
 
-        if distance < 50:
+        if distance < 100:
             if x == 300:
                 current_job = "alchemist"
             elif x == 600:
                 current_job = "assassin"
             elif x == 900:
                 current_job = "officer"
-
-            player.change_job(Player_job[current_job])
-            print(f"직업 변경: {current_job}")
-
+            if current_job in Player_job:
+                player.change_job(Player_job[current_job])
+                player.change_job(Player_job[current_job])
+                print(f"직업 변경: {current_job}")
+                return True
+    return False
 class Job:
     def __init__(self):
         self.alchemist = load_image('asset/Character/alchemist_0.png')

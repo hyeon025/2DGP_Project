@@ -177,7 +177,8 @@ class Player:
             self.IDLE,
             {
                 self.IDLE: {d_down: self.WALK,a_down: self.WALK,w_down: self.WALK,s_down: self.WALK,
-                            d_up: self.WALK, a_up: self.WALK,w_up: self.WALK, s_up: self.WALK},
+                            d_up: self.WALK, a_up: self.WALK,w_up: self.WALK, s_up: self.WALK
+                            ,space_down:  self.IDLE},
                 self.WALK: {d_down: self.WALK, d_up: self.WALK,a_down: self.WALK, a_up: self.WALK,
                             w_down: self.WALK, w_up: self.WALK,s_down: self.WALK, s_up: self.WALK}
             })
@@ -190,3 +191,6 @@ class Player:
 
     def handle_event(self,event):
         self.state_machine.handle_state_events(('INPUT', event))
+
+    def change_job(self, new_job):
+        self.job = load_image(new_job)
