@@ -1,5 +1,7 @@
 from pico2d import *
 import time
+
+import game_world
 from job import Player_job, current_job, Job
 from map import Game_Map, Map, current_map
 from player import Player
@@ -12,17 +14,19 @@ def init():
     global world, player
     global job_selec_atf
 
-    world = []
     map = Game_Map(Map[current_map])
-    world.append(map)
+    game_world.add_object(map,0)
+
     job = Job()
-    world.append(job)
+    game_world.add_object(job,2)
+
     for x,y in [(300,340),(600,340),(900,340),(600,680)]:
         particles = Particle(x,y)
-        world.append(particles)
+        game_world.add_object(particles,3)
+        game_world.add_collision_pair('particle:player',None,particles)
+
     player = Player(Player_job[current_job])
-    world.append(player)
-    pass
+    game_world.add_object(player,3)
 
 
 def handle_events():
@@ -39,19 +43,18 @@ def handle_events():
             player.handle_event(event)
 
 def update():
-    for o in world:
-        o.update()
+    game_world.update()
+    game_world.handle_collisions()
 
 
 def draw():
     clear_canvas()
-    for game_object in world:
-        game_object.draw()
+    game_world.render()
     update_canvas()
     pass
 
 def finish():
-    world.clear()
+    game_world.clear()
     pass
 
 
