@@ -12,13 +12,15 @@ class Particle:
 
     def draw(self):
         if current_map == "Lobby":
-            for x,y in job_selec_atf:
-                self.image.draw(x, y, 40, 40)
-                if game_framework.show_bb:
-                    draw_rectangle(*self.get_bb())
+            self.image.draw(self.x, self.y, 40, 40)
+            if game_framework.show_bb:
+                draw_rectangle(*self.get_bb())
 
     def update(self):
         pass
 
     def get_bb(self):
         return self.x-10, self.y-10, self.x+10, self.y+10
+
+    def handle_collision(self, group, other):
+        pass

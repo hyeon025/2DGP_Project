@@ -20,13 +20,14 @@ def init():
     job = Job()
     game_world.add_object(job,2)
 
-    for x,y in [(300,340),(600,340),(900,340),(600,680)]:
-        particles = Particle(x,y)
-        game_world.add_object(particles,3)
-        game_world.add_collision_pair('particle:player',None,particles)
-
     player = Player(Player_job[current_job])
     game_world.add_object(player,3)
+
+    for x,y in [(300,340),(600,340),(900,340),(600,680)]:
+        particles = Particle(x,y)
+        game_world.add_object(particles,2)
+        game_world.add_collision_pair('particle:player',particles,player)
+
 
 
 def handle_events():

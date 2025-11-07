@@ -50,9 +50,7 @@ class Walk:
         self.update_key_and_dir(e)
 
     def handle_space(self, e):
-        if current_map == "Lobby":
-            from job import Selectjob
-            Selectjob(self.player)
+        self.player.try_change_job()
 
     def exit(self, e):
         pass
@@ -129,9 +127,7 @@ class Idle:
         self.player.dir_y = 0
 
     def handle_space(self, e):
-        if current_map == "Lobby":
-            from job import Selectjob
-            Selectjob(self.player)
+        self.player.try_change_job()
 
     def exit(self, e):
         pass
@@ -181,6 +177,7 @@ class Player:
         self.dir_x = 0
         self.dir_y = 0
         self.frame = 0
+        self.colliding_particle = None
 
         self.keys = {'d': False, 'a': False, 'w': False, 's': False}
 
@@ -214,3 +211,41 @@ class Player:
 
     def get_bb(self):
         return self.x - 30, self.y - 40, self.x + 30, self.y + 20
+
+    def handle_collision(self, group, other):
+        if group == 'particle:player':
+            self.colliding_particle = other
+
+
+    def try_change_job(self):
+        if current_map == "Lobby" and self.colliding_particle:
+            from job import Player_job
+            import job
+            import map as game_map
+            import game_framework
+            import round_1_mode
+
+            px = self.colliding_particle.x
+            py = self.colliding_particle.y
+
+            # 라운드 시작 파티클
+            if px == 600 and py == 680:
+                print("1라운드 시작!")
+                game_map.current_map = "Round_1"
+                game_framework.change_mode(round_1_mode)
+                return
+
+            # 직업 선택 파티클
+            if py == 340:
+                job_positions = {
+                    300: "alchemist",
+                    600: "assassin",
+                    900: "officer"
+                }
+
+                if px in job_positions:
+                    job_name = job_positions[px]
+                    job.current_job = job_name
+                    if job_name in Player_job:
+                        self.change_job(Player_job[job_name])
+                        print(f"직업 변경: {job_name}")
