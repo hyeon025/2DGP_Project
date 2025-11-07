@@ -5,6 +5,17 @@ from pico2d import load_image
 Player_job = {"alchemist": "asset/Character/alchemist_0.png", "assassin": "asset/Character/assassin_0.png", "officer": "asset/Character/officer_0.png"}
 current_job = "alchemist"
 
+def collide(a, b):
+    left_a, bottom_a, right_a, top_a = a.get_bb()
+    left_b, bottom_b, right_b, top_b = b.get_bb()
+
+    if left_a > right_b: return False
+    if right_a < left_b: return False
+    if top_a < bottom_b: return False
+    if bottom_a > top_b: return False
+
+    return True
+
 def Selectjob(player):
     global current_job
     for x, y in [(300, 340), (600, 340), (900, 340)]:
