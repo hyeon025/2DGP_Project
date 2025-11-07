@@ -209,3 +209,6 @@ class Player:
 
     def change_job(self, new_job):
         self.job = load_image(new_job)
+
+    def get_bb(self):
+        return self.x - 40, self.y - 40, self.x + 40, self.y + 40
