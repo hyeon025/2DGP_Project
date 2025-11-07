@@ -5,6 +5,11 @@ from lobby import lobbyCollision
 from map import current_map
 from state_machine import StateMachine
 import game_framework
+import game_world
+from job import Player_job
+import job
+import map as game_map
+import round_1_mode
 
 
 def d_down(e):
@@ -218,13 +223,14 @@ class Player:
 
 
     def try_change_job(self):
-        if current_map == "Lobby" and self.colliding_particle:
-            from job import Player_job
-            import job
-            import map as game_map
-            import game_framework
-            import round_1_mode
+        if current_map != "Lobby" or not self.colliding_particle:
+            return
 
+        if not game_world.collide(self, self.colliding_particle):
+            self.colliding_particle = None
+            return
+
+        if current_map == "Lobby" and self.colliding_particle:
             px = self.colliding_particle.x
             py = self.colliding_particle.y
 
