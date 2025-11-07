@@ -4,6 +4,7 @@ from job import Player_job, current_job, Job
 from map import Game_Map, Map, current_map
 from player import Player
 from particle import Particle
+import game_framework
 
 
 def init():
@@ -26,9 +27,9 @@ def handle_events():
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
-            Play = False
+            game_framework.quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
-                Play = False
+            game_framework.quit()
         else:
             player.handle_event(event)
 

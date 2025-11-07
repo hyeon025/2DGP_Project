@@ -4,6 +4,7 @@ from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s, SDLK_SP
 from lobby import lobbyCollision
 from map import current_map
 from state_machine import StateMachine
+import game_framework
 
 
 def d_down(e):
@@ -26,6 +27,16 @@ def s_up(e):
 def space_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_SPACE
 
+PIXEL_PER_METER = (10.0 / 0.3) # 10 pixel 30 cm
+RUN_SPEED_KMPH = 20.0 # Km / Hour
+RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
+RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
+RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
+
+TIME_PER_ACTION = 0.5
+ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
+FRAMES_PER_ACTION = 8
+
 class Walk:
     def __init__(self, player):
         self.player = player
@@ -47,13 +58,10 @@ class Walk:
         pass
 
     def do(self):
-        self.frame_time += 0.016
-        if self.frame_time > 0.5:
-            self.player.frame = (self.player.frame + 1) % 8
-            self.frame_time = 0
+        self.player.frame = (self.player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 8
 
-        self.player.x += self.player.dir_x * 0.5
-        self.player.y += self.player.dir_y * 0.5
+        self.player.x += self.player.dir_x * RUN_SPEED_PPS * game_framework.frame_time
+        self.player.y += self.player.dir_y * RUN_SPEED_PPS * game_framework.frame_time
         if current_map == "Lobby":
             lobbyCollision(self.player)
 
@@ -63,9 +71,9 @@ class Walk:
 
     def draw(self):
         if self.player.face_dir == 1:
-            self.player.job.clip_draw(self.player.frame * 40, 40, 40, 40, self.player.x, self.player.y, 80, 80)
+            self.player.job.clip_draw(int(self.player.frame) * 40, 40, 40, 40, self.player.x, self.player.y, 80, 80)
         else:
-            self.player.job.clip_composite_draw(self.player.frame * 40, 40, 40, 40, 0,'h', self.player.x, self.player.y, 80, 80)
+            self.player.job.clip_composite_draw(int(self.player.frame) * 40, 40, 40, 40, 0,'h', self.player.x, self.player.y, 80, 80)
 
     def update_key_and_dir(self, e):
         # 키 상태 업데이트
@@ -129,16 +137,13 @@ class Idle:
         pass
 
     def do(self):
-        self.frame_time += 0.016
-        if self.frame_time > 0.5:
-            self.player.frame = (self.player.frame + 1) % 8
-            self.frame_time = 0
+        self.player.frame = (self.player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 8
 
     def draw(self):
         if self.player.face_dir == 1:
-            self.player.job.clip_draw(self.player.frame * 40, 80, 40, 40,self.player.x, self.player.y, 80, 80)
+            self.player.job.clip_draw(int(self.player.frame) * 40, 80, 40, 40,self.player.x, self.player.y, 80, 80)
         else:
-            self.player.job.clip_composite_draw(self.player.frame * 40, 80, 40, 40,0, 'h', self.player.x, self.player.y, 80, 80)
+            self.player.job.clip_composite_draw(int(self.player.frame) * 40, 80, 40, 40,0, 'h', self.player.x, self.player.y, 80, 80)
 
     def update_key_and_dir(self, e):
         if d_up(e):
