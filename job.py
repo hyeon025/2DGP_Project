@@ -23,7 +23,7 @@ def Selectjob(player):
         dy = abs(player.y - y)
         distance = (dx ** 2 + dy ** 2) ** 0.5
 
-        if distance < 50:
+        if distance < 30:
             if x == 300:
                 current_job = "alchemist"
             elif x == 600:
