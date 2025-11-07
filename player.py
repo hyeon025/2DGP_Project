@@ -141,9 +141,9 @@ class Idle:
 
     def draw(self):
         if self.player.face_dir == 1:
-            self.player.job.clip_draw(int(self.player.frame) * 40, 80, 40, 40,self.player.x, self.player.y, 80, 80)
+            self.player.job.clip_draw(int(self.player.frame) * 40, 40, 40, 40,self.player.x, self.player.y, 80, 80)
         else:
-            self.player.job.clip_composite_draw(int(self.player.frame) * 40, 80, 40, 40,0, 'h', self.player.x, self.player.y, 80, 80)
+            self.player.job.clip_composite_draw(int(self.player.frame) * 40, 40, 40, 40,0, 'h', self.player.x, self.player.y, 80, 80)
 
     def update_key_and_dir(self, e):
         if d_up(e):
@@ -213,4 +213,4 @@ class Player:
         self.job = load_image(new_job)
 
     def get_bb(self):
-        return self.x - 40, self.y - 40, self.x + 40, self.y + 40
+        return self.x - 30, self.y - 40, self.x + 30, self.y + 20
