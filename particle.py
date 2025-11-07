@@ -14,3 +14,6 @@ class Particle:
 
     def update(self):
         pass
+
+    def get_bb(self):
+        return self.x-10, self.y-10, self.x+10, self.y+10
