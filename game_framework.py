@@ -1,6 +1,8 @@
 import time
 frame_time = 0.0
 
+show_bb = False
+
 running = None
 stack = None
 

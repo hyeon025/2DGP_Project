@@ -1,4 +1,4 @@
-from pico2d import load_image
+from pico2d import load_image , get_time, draw_rectangle
 from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s, SDLK_SPACE
 
 from lobby import lobbyCollision
@@ -200,6 +200,8 @@ class Player:
 
     def draw(self):
         self.state_machine.draw()
+        if game_framework.show_bb:
+            draw_rectangle(*self.get_bb())
 
     def update(self):
         self.state_machine.update()

@@ -3,20 +3,23 @@ import time
 from job import Player_job, current_job, Job
 from map import Game_Map, Map, current_map
 from player import Player
-from particle import Particle
+from particle import Particle , job_selec_atf
 import game_framework
+
 
 
 def init():
     global world, player
+    global job_selec_atf
 
     world = []
     map = Game_Map(Map[current_map])
     world.append(map)
     job = Job()
     world.append(job)
-    particle = Particle()
-    world.append(particle)
+    for x,y in [(300,340),(600,340),(900,340),(600,680)]:
+        particles = Particle(x,y)
+        world.append(particles)
     player = Player(Player_job[current_job])
     world.append(player)
     pass
@@ -30,6 +33,8 @@ def handle_events():
             game_framework.quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.quit()
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_y:
+            game_framework.show_bb = not game_framework.show_bb
         else:
             player.handle_event(event)
 
