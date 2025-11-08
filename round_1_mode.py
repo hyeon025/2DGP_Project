@@ -19,6 +19,11 @@ def init():
     player =Player(Player_job[current_job])
     player.x = 280
     player.y = 950
+
+    player.keys = {'d': False, 'a': False, 'w': False, 's': False}
+    player.state_machine.current_state = player.IDLE
+    player.IDLE.enter(('STOP', 0))
+
     game_world.add_object(player, 3)
 
     camera.update(player.x, player.y)

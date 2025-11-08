@@ -153,9 +153,9 @@ class Idle:
             sx, sy = self.player.x, self.player.y
 
         if self.player.face_dir == 1:
-            self.player.job.clip_draw(int(self.player.frame) * 40, 40, 40, 40,sx, sy, 80, 80)
+            self.player.job.clip_draw(int(self.player.frame) * 40, 80, 40, 40,sx, sy, 80, 80)
         else:
-            self.player.job.clip_composite_draw(int(self.player.frame) * 40, 40, 40, 40,0, 'h', sx, sy, 80, 80)
+            self.player.job.clip_composite_draw(int(self.player.frame) * 40, 80, 40, 40,0, 'h', sx, sy, 80, 80)
 
     def update_key_and_dir(self, e):
         if d_up(e):
