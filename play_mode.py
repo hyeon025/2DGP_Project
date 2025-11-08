@@ -47,11 +47,11 @@ def handle_events():
             player.handle_event(event)
 
 def update():
-    player.update()
+    game_world.update()
+
     if game_map.current_map != "Lobby":
         camera.update(player.x, player.y)
 
-    game_world.update()
     game_world.handle_collisions()
 
 
