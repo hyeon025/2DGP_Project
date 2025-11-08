@@ -31,29 +31,38 @@ def round1Collision(player):
 
     scale = 10000.0 / _collision_width
 
-    img_x = int(next_x / scale)
-    img_y = int(next_y / scale)
+    check_points = [
+        (next_x, next_y),  # 중심
+        (next_x - 40, next_y - 55),  # 좌하단
+        (next_x + 40, next_y - 55),  # 우하단
+        (next_x - 40, next_y),  # 좌상단
+        (next_x + 40, next_y),  # 우상단
+    ]
 
-    if img_x < 0 or img_x >= _collision_width or img_y < 0 or img_y >= _collision_height:
-        return
+    for px, py in check_points:
+        img_x = int(px / scale)
+        img_y = int(py / scale)
 
-    pil_y = _collision_height - 1 - img_y
+        if img_x < 0 or img_x >= _collision_width or img_y < 0 or img_y >= _collision_height:
+            return
 
-    pixel = _collision_data[img_x, pil_y]
+        pil_y = _collision_height - 1 - img_y
+        pixel = _collision_data[img_x, pil_y]
 
-    if _image_mode == 'L':
-        r = g = b = pixel
-    elif _image_mode == 'RGB':
-        r, g, b = pixel
-    elif _image_mode == 'RGBA':
-        r, g, b, a = pixel
-    else:
-        r = g = b = pixel if isinstance(pixel, int) else pixel[0]
+        if _image_mode == 'L':
+            r = g = b = pixel
+        elif _image_mode == 'RGB':
+            r, g, b = pixel
+        elif _image_mode == 'RGBA':
+            r, g, b, a = pixel
+        else:
+            r = g = b = pixel if isinstance(pixel, int) else pixel[0]
 
-    # 검은색
-    if r < 1 and g < 1 and b < 1:
-        print('충돌!')
-        return
+        # 검은색 충돌
+        if r < 1 and g < 1 and b < 1:
+            print('충돌!')
+            return
+
 
     player.x = next_x
     player.y = next_y
