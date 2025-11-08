@@ -65,6 +65,8 @@ class Walk:
         self.player.y += self.player.dir_y * RUN_SPEED_PPS * game_framework.frame_time * 1.2
         if game_map.current_map == "Lobby":
             lobbyCollision(self.player)
+        elif game_map.current_map == "Round_1":
+            game_map.round_1_collision(self.player)
 
         if not any(self.player.keys.values()) or (self.player.dir_x == 0 and self.player.dir_y == 0):
             self.player.state_machine.current_state = self.player.IDLE
