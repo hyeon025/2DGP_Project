@@ -2,7 +2,6 @@ from pico2d import load_image , get_time, draw_rectangle
 from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s, SDLK_SPACE
 
 from lobby import lobbyCollision
-from map import current_map
 from state_machine import StateMachine
 import game_framework
 import game_world
@@ -64,7 +63,7 @@ class Walk:
 
         self.player.x += self.player.dir_x * RUN_SPEED_PPS * game_framework.frame_time
         self.player.y += self.player.dir_y * RUN_SPEED_PPS * game_framework.frame_time
-        if current_map == "Lobby":
+        if game_map.current_map == "Lobby":
             lobbyCollision(self.player)
 
         if not any(self.player.keys.values()) or (self.player.dir_x == 0 and self.player.dir_y == 0):
@@ -240,14 +239,14 @@ class Player:
 
 
     def try_change_job(self):
-        if current_map != "Lobby" or not self.colliding_particle:
+        if game_map.current_map != "Lobby" or not self.colliding_particle:
             return
 
         if not game_world.collide(self, self.colliding_particle):
             self.colliding_particle = None
             return
 
-        if current_map == "Lobby" and self.colliding_particle:
+        if game_map.current_map == "Lobby" and self.colliding_particle:
             px = self.colliding_particle.x
             py = self.colliding_particle.y
 

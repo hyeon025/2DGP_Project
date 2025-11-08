@@ -16,8 +16,12 @@ class Game_Map:
             self.world_center_y = 450
         else:
             self.background = load_image(Room[current_room])
-            self.world_center_x = 1375
-            self.world_center_y = 930
+            base_cx = 1375
+            base_cy = 930
+
+            self.world_center_x = int(base_cx * 2)
+            self.world_center_y = int(base_cy * 2)
+
     def update(self):
         pass
 
@@ -28,9 +32,13 @@ class Game_Map:
             if current_map == "Lobby":
                 self.background.draw(sx, sy, 1200, 900)
             else:
-                self.background.draw(sx, sy)
+                w = int(self.background.w * 2)
+                h = int(self.background.h * 2)
+                self.background.draw(sx, sy, w, h)
         else:
             if current_map == "Lobby":
                 self.background.draw(600, 450, 1200, 900)
             else:
-                self.background.draw(600, 400)
+                w = int(self.background.w * 2)
+                h = int(self.background.h * 2)
+                self.background.draw(self.world_center_x, self.world_center_y, w, h)
