@@ -16,8 +16,8 @@ class Game_Map:
             self.world_center_y = 450
         else:
             self.background = load_image(Room[current_room])
-            base_cx = 1375
-            base_cy = 930
+            base_cx = 2500
+            base_cy = 2500
 
             self.world_center_x = int(base_cx * 2)
             self.world_center_y = int(base_cy * 2)

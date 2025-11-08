@@ -1,6 +1,7 @@
 from pico2d import load_image , get_time, draw_rectangle
 from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s, SDLK_SPACE
 
+import round1
 from lobby import lobbyCollision
 from state_machine import StateMachine
 import game_framework
@@ -61,12 +62,12 @@ class Walk:
     def do(self):
         self.player.frame = (self.player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 8
 
-        self.player.x += self.player.dir_x * RUN_SPEED_PPS * game_framework.frame_time * 1.2
-        self.player.y += self.player.dir_y * RUN_SPEED_PPS * game_framework.frame_time * 1.2
         if game_map.current_map == "Lobby":
+            self.player.x += self.player.dir_x * RUN_SPEED_PPS * game_framework.frame_time * 1.2
+            self.player.y += self.player.dir_y * RUN_SPEED_PPS * game_framework.frame_time * 1.2
             lobbyCollision(self.player)
         elif game_map.current_map == "Round_1":
-            game_map.round_1_collision(self.player)
+            round1.round1Collision(self.player)
 
         if not any(self.player.keys.values()) or (self.player.dir_x == 0 and self.player.dir_y == 0):
             self.player.state_machine.current_state = self.player.IDLE

@@ -6,7 +6,7 @@ from job import Player_job, current_job, Job
 from player import Player
 from camera import Camera
 
-camera = Camera(world_w=2750 * 2, world_h=1860 * 2, screen_w=1200, screen_h=900)
+camera = Camera(world_w=5000 * 2, world_h=5000 * 2, screen_w=1200, screen_h=900)
 
 
 def init():
@@ -17,8 +17,8 @@ def init():
     game_world.add_object(map_obj, 0)
 
     player =Player(Player_job[current_job])
-    player.x = 280 * 2
-    player.y = 950 * 2
+    player.x = 970 * 2
+    player.y = 2560 * 2
 
     player.keys = {'d': False, 'a': False, 'w': False, 's': False}
     player.state_machine.current_state = player.IDLE
