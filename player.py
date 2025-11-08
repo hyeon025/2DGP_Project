@@ -61,8 +61,8 @@ class Walk:
     def do(self):
         self.player.frame = (self.player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 8
 
-        self.player.x += self.player.dir_x * RUN_SPEED_PPS * game_framework.frame_time
-        self.player.y += self.player.dir_y * RUN_SPEED_PPS * game_framework.frame_time
+        self.player.x += self.player.dir_x * RUN_SPEED_PPS * game_framework.frame_time * 1.2
+        self.player.y += self.player.dir_y * RUN_SPEED_PPS * game_framework.frame_time * 1.2
         if game_map.current_map == "Lobby":
             lobbyCollision(self.player)
 
