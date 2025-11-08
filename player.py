@@ -9,7 +9,6 @@ import game_world
 from job import Player_job
 import job
 import map as game_map
-import round_1_mode
 
 
 def d_down(e):
@@ -256,7 +255,13 @@ class Player:
             if px == 600 and py == 680:
                 print("1라운드 시작!")
                 game_map.current_map = "Round_1"
-                game_framework.change_mode(round_1_mode)
+                import importlib
+                try:
+                    round_mode = importlib.import_module('round_1_mode')
+                except ImportError:
+                    print("round_1_mode 모듈을 찾을 수 없습니다.")
+                    return
+                game_framework.change_mode(round_mode)
                 return
 
             # 직업 선택 파티클

@@ -16,30 +16,21 @@ class Game_Map:
             self.world_center_y = 450
         else:
             self.background = load_image(Room[current_room])
-            self.background = load_image(Room[current_room])
-            self.world_center_x = 2500
-            self.world_center_y = 2500
+            self.world_center_x = 1375
+            self.world_center_y = 930
     def update(self):
         pass
 
     def draw(self):
         cam = game_world.camera
         if cam:
-            # 월드 중심을 카메라로 변환해서 화면에 그림
             sx, sy = cam.to_camera(self.world_center_x, self.world_center_y)
             if current_map == "Lobby":
                 self.background.draw(sx, sy, 1200, 900)
             else:
-                if current_room == "Map_1" or current_room == "Map_2":
-                    self.background.draw(sx, sy, 1100, 900)
-                elif current_room == "Map_3" or current_room == "Map_4":
-                    self.background.draw(sx, sy, 1000, 1000)
+                self.background.draw(sx, sy)
         else:
-            # 카메라가 없을 때 기존 동작 유지
             if current_map == "Lobby":
                 self.background.draw(600, 450, 1200, 900)
             else:
-                if current_room == "Map_1" or current_room == "Map_2":
-                    self.background.draw(600, 400, 1100, 900)
-                elif current_room == "Map_3" or current_room == "Map_4":
-                    self.background.draw(600, 400, 1000, 1000)
+                self.background.draw(600, 400)

@@ -63,6 +63,7 @@ def draw():
 
 def finish():
     game_world.clear()
+    game_world.camera = None
     pass
 
 
