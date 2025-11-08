@@ -1,6 +1,7 @@
 from pico2d import load_image , draw_rectangle
 from map import current_map
 import game_framework
+import game_world
 
 job_selec_atf = [(300,340),(600,340),(900,340),(600,680)]
 

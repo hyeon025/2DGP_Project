@@ -1,4 +1,5 @@
 world = [[] for _ in range(4)]
+camera = None
 
 def add_object(o, depth = 0):
     world[depth].append(o)

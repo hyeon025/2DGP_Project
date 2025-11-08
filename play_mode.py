@@ -3,19 +3,22 @@ import time
 
 import game_world
 from job import Player_job, current_job, Job
-from map import Game_Map, Map, current_map
+import map as game_map
 from player import Player
 from particle import Particle , job_selec_atf
 import game_framework
+from camera import Camera
 
-
+camera = Camera(world_w=5000, world_h=5000, screen_w=1200, screen_h=900)
 
 def init():
     global world, player
     global job_selec_atf
 
-    map = Game_Map(Map[current_map])
-    game_world.add_object(map,0)
+    game_world.camera = camera
+
+    map_obj = game_map.Game_Map(game_map.Map[game_map.current_map])
+    game_world.add_object(map_obj,0)
 
     job = Job()
     game_world.add_object(job,2)
@@ -44,6 +47,10 @@ def handle_events():
             player.handle_event(event)
 
 def update():
+    player.update()
+    if game_map.current_map != "Lobby":
+        camera.update(player.x, player.y)
+
     game_world.update()
     game_world.handle_collisions()
 

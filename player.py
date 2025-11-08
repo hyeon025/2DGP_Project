@@ -73,10 +73,16 @@ class Walk:
             self.player.IDLE.enter(('STOP', 0))
 
     def draw(self):
-        if self.player.face_dir == 1:
-            self.player.job.clip_draw(int(self.player.frame) * 40, 40, 40, 40, self.player.x, self.player.y, 80, 80)
+        cam = game_world.camera
+        if cam:
+            sx, sy = cam.to_camera(self.player.x, self.player.y)
         else:
-            self.player.job.clip_composite_draw(int(self.player.frame) * 40, 40, 40, 40, 0,'h', self.player.x, self.player.y, 80, 80)
+            sx, sy = self.player.x, self.player.y
+
+        if self.player.face_dir == 1:
+            self.player.job.clip_draw(int(self.player.frame) * 40, 40, 40, 40, sx, sy, 80, 80)
+        else:
+            self.player.job.clip_composite_draw(int(self.player.frame) * 40, 40, 40, 40, 0,'h', sx, sy, 80, 80)
 
     def update_key_and_dir(self, e):
         # 키 상태 업데이트
@@ -141,10 +147,16 @@ class Idle:
         self.player.frame = (self.player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 8
 
     def draw(self):
-        if self.player.face_dir == 1:
-            self.player.job.clip_draw(int(self.player.frame) * 40, 40, 40, 40,self.player.x, self.player.y, 80, 80)
+        cam = game_world.camera
+        if cam:
+            sx, sy = cam.to_camera(self.player.x, self.player.y)
         else:
-            self.player.job.clip_composite_draw(int(self.player.frame) * 40, 40, 40, 40,0, 'h', self.player.x, self.player.y, 80, 80)
+            sx, sy = self.player.x, self.player.y
+
+        if self.player.face_dir == 1:
+            self.player.job.clip_draw(int(self.player.frame) * 40, 40, 40, 40,sx, sy, 80, 80)
+        else:
+            self.player.job.clip_composite_draw(int(self.player.frame) * 40, 40, 40, 40,0, 'h', sx, sy, 80, 80)
 
     def update_key_and_dir(self, e):
         if d_up(e):
@@ -203,7 +215,13 @@ class Player:
     def draw(self):
         self.state_machine.draw()
         if game_framework.show_bb:
-            draw_rectangle(*self.get_bb())
+            if game_world.camera:
+                l, b, r, t = self.get_bb()
+                sl, sb = game_world.camera.to_camera(l, b)
+                sr, st = game_world.camera.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
 
     def update(self):
         self.state_machine.update()

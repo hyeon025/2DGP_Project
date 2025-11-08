@@ -14,3 +14,6 @@ class Camera:
         cx = max(0, min(cx, self.world_w - self.screen_w))
         cy = max(0, min(cy, self.world_h - self.screen_h))
         self.x, self.y = cx, cy
+
+    def to_camera(self, world_x, world_y):
+        return world_x - self.x, world_y - self.y
