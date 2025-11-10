@@ -1,6 +1,7 @@
 from pico2d import load_image
 from PIL import Image
 import game_framework
+import game_world
 
 rooms = {
     1: {'type': 1, 'num': 10},
@@ -19,6 +20,30 @@ RUN_SPEED_KMPH = 20.0
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
+
+
+def load_collision_map(map_path):
+    global _collision_data, _collision_width, _collision_height, _image_mode, current_collision_map
+
+    current_collision_map = map_path
+    img = Image.open(map_path)
+    _collision_data = img.load()
+    _collision_width = img.width
+    _collision_height = img.height
+    _image_mode = img.mode
+
+
+def change_map(background_path, collision_path):
+    """맵과 충돌 맵을 변경"""
+    global current_background
+
+    current_background = background_path
+    load_collision_map(collision_path)
+
+    # 배경 이미지 교체
+    for obj in game_world.world[0]:
+        if hasattr(obj, 'background'):
+            obj.background = load_image(background_path)
 
 def round1Collision(player):
     global _collision_data, _collision_width, _collision_height, _image_mode
@@ -79,7 +104,6 @@ def round1Collision(player):
         player.x = next_x
         player.y = next_y
 
-        # 중앙 픽셀만 체크하여 방 입장 메시지 출력
         img_x = int(player.x / scale)
         img_y = int(player.y / scale)
 
@@ -94,11 +118,14 @@ def round1Collision(player):
             else:
                 r = g = b = pixel if isinstance(pixel, int) else pixel[0]
 
-            # 각 방 입장 체크 (한 프레임에 한 번만 출력)
             if r == 43 and g == 43 and b == 43:
                 print('2번방 입장!')
             elif r == 44 and g == 44 and b == 44:
                 print('1번방 입장!')
+                if rooms[1]['num'] > 0:
+                    change_map('asset/Map/round1_close_map.png',
+                               'asset/Map/round1_close_collision.png')
+
             elif r == 45 and g == 45 and b == 45:
                 print('3번방 입장!')
             elif r == 46 and g == 46 and b == 46:
