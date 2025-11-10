@@ -18,6 +18,8 @@ class Monster:
         self.y = y
         self.frame = 0
         self.face_dir = 1
+        self.dir_x = 0
+        self.dir_y = 0
         self.hp = hp
         self.alive = True
 
@@ -46,7 +48,7 @@ class Monster:
         if self.face_dir == 1:
             self.image.clip_draw(int(self.frame) * 24, 48, 24, 24, sx, sy, 80, 80)
         else:
-            self.image.clip_composite_draw(int(self.frame) * 24 48, 24, 24, 0, 'h', sx, sy, 80, 80)
+            self.image.clip_composite_draw(int(self.frame) * 24, 48, 24, 24, 0, 'h', sx, sy, 80, 80)
 
     def handle_collision(self, group, other):
         pass
