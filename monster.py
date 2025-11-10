@@ -46,9 +46,18 @@ class Monster:
             sx, sy = self.x, self.y
 
         if self.face_dir == 1:
-            self.image.clip_draw(int(self.frame) * 24, 48, 24, 24, sx, sy, 80, 80)
+            self.image.clip_draw(int(self.frame) * 24, 48, 24, 24, sx, sy, 40, 40)
         else:
-            self.image.clip_composite_draw(int(self.frame) * 24, 48, 24, 24, 0, 'h', sx, sy, 80, 80)
+            self.image.clip_composite_draw(int(self.frame) * 24, 48, 24, 24, 0, 'h', sx, sy, 40, 40)
+
+        if game_framework.show_bb:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
 
     def handle_collision(self, group, other):
         pass

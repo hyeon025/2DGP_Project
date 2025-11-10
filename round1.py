@@ -1,7 +1,10 @@
+import random
+
 from pico2d import load_image
 from PIL import Image
 import game_framework
 import game_world
+from monster import Monster
 
 rooms = {
     1: {'type': 1, 'num': 10},
@@ -14,6 +17,10 @@ _collision_data = None
 _collision_width = 0
 _collision_height = 0
 _image_mode = None
+current_collision_map = 'asset/Map/round1_collision.png'
+current_background = 'asset/Map/round1_map.png'
+current_room = None
+monsters = []
 
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH = 20.0
@@ -33,17 +40,46 @@ def load_collision_map(map_path):
     _image_mode = img.mode
 
 
-def change_map(background_path, collision_path):
-    """맵과 충돌 맵을 변경"""
-    global current_background
+def spawn_monsters(room_num, player):
+    global monsters
+
+    for monster in monsters:
+        game_world.remove_object(monster)
+    monsters.clear()
+
+    monster_count = rooms[room_num]['num']
+    monster_type = rooms[room_num]['type']
+
+    if room_num == 1:
+        # 1번 방의 실제 월드 좌표 (round1_close_collision.png 기준)
+        # 예시: 방 중앙 근처에 생성
+        base_x = 1960 * 2  # 월드 좌표
+        base_y = 2450 * 2  # 월드 좌표
+
+        for i in range(monster_count):
+            spawn_x = base_x + random.randint(-100, 400)
+            spawn_y = base_y + random.randint(-100, 400)
+
+            monster = Monster(spawn_x, spawn_y, monster_type)
+            monsters.append(monster)
+            game_world.add_object(monster, 2)
+            game_world.add_collision_pair('player:monster', None, monster)
+
+
+def change_map(background_path, collision_path, room_num, player):
+    global current_background, current_room
 
     current_background = background_path
+    current_room = room_num
     load_collision_map(collision_path)
 
-    # 배경 이미지 교체
     for obj in game_world.world[0]:
         if hasattr(obj, 'background'):
             obj.background = load_image(background_path)
+
+
+    spawn_monsters(room_num, player)
+
 
 def round1Collision(player):
     global _collision_data, _collision_width, _collision_height, _image_mode
@@ -124,7 +160,7 @@ def round1Collision(player):
                 print('1번방 입장!')
                 if rooms[1]['num'] > 0:
                     change_map('asset/Map/round1_close_map.png',
-                               'asset/Map/round1_close_collision.png')
+                               'asset/Map/round1_close_collision.png', 1, player)
 
             elif r == 45 and g == 45 and b == 45:
                 print('3번방 입장!')
