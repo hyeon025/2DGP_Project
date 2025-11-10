@@ -46,11 +46,14 @@ def round1Collision(player):
         (next_x + 40, next_y),  # 우상단
     ]
 
+    can_move = True
+
     for px, py in check_points:
         img_x = int(px / scale)
         img_y = int(py / scale)
 
         if img_x < 0 or img_x >= _collision_width or img_y < 0 or img_y >= _collision_height:
+            can_move = False
             return
 
         pil_y = _collision_height - 1 - img_y
@@ -65,11 +68,38 @@ def round1Collision(player):
         else:
             r = g = b = pixel if isinstance(pixel, int) else pixel[0]
 
+        # print('픽셀 값:', r, g, b)
+
         # 검은색 충돌
         if r < 1 and g < 1 and b < 1:
-            print('충돌!')
+            print('벽 충돌!')
             return
 
+    if can_move:
+        player.x = next_x
+        player.y = next_y
 
-    player.x = next_x
-    player.y = next_y
+        # 중앙 픽셀만 체크하여 방 입장 메시지 출력
+        img_x = int(player.x / scale)
+        img_y = int(player.y / scale)
+
+        if 0 <= img_x < _collision_width and 0 <= img_y < _collision_height:
+            pil_y = _collision_height - 1 - img_y
+            pixel = _collision_data[img_x, pil_y]
+
+            if _image_mode == 'RGB':
+                r, g, b = pixel
+            elif _image_mode == 'RGBA':
+                r, g, b, a = pixel
+            else:
+                r = g = b = pixel if isinstance(pixel, int) else pixel[0]
+
+            # 각 방 입장 체크 (한 프레임에 한 번만 출력)
+            if r == 43 and g == 43 and b == 43:
+                print('2번방 입장!')
+            elif r == 44 and g == 44 and b == 44:
+                print('1번방 입장!')
+            elif r == 45 and g == 45 and b == 45:
+                print('3번방 입장!')
+            elif r == 46 and g == 46 and b == 46:
+                print('4번방 입장!')
