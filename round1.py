@@ -2,6 +2,13 @@ from pico2d import load_image
 from PIL import Image
 import game_framework
 
+rooms = {
+    1: {'type': 1, 'num': 10},
+    2: {'type': 2, 'num': 0},
+    3: {'type': 3, 'num': 0},
+    4: {'type': 1, 'num': 10},
+}
+
 _collision_data = None
 _collision_width = 0
 _collision_height = 0
