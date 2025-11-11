@@ -5,12 +5,14 @@ import map as game_map
 from job import Player_job, current_job, Job
 from player import Player
 from camera import Camera
+import round1
 
 camera = Camera(world_w=5000 * 2, world_h=5000 * 2, screen_w=1200, screen_h=900)
 
 
 def init():
     global player, map_obj
+
     game_world.camera = camera
 
     map_obj = game_map.Game_Map(game_map.Map[game_map.current_map])

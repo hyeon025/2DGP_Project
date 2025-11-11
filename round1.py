@@ -6,6 +6,8 @@ import game_framework
 import game_world
 from monster import Monster
 
+_background_cache = {}
+
 rooms = {
     1: {'type': 1, 'num': 10},
     2: {'type': 2, 'num': 0},
@@ -28,6 +30,19 @@ RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
 
+
+def preload_backgrounds():
+    global _background_cache
+    bg_paths = [
+        'asset/Map/round1_map.png',
+        'asset/Map/round1_close_map.png',
+        'asset/Map/round1_collision.png',
+        'asset/Map/round1_close_collision.png',
+    ]
+
+    for path in bg_paths:
+        if path not in _background_cache:
+            _background_cache[path] = load_image(path)
 
 def load_collision_map(map_path):
     global _collision_data, _collision_width, _collision_height, _image_mode, current_collision_map
@@ -73,7 +88,11 @@ def change_map(background_path, collision_path, room_num, player):
     current_room = room_num
     load_collision_map(collision_path)
 
-    bg_img = load_image(background_path)
+    if background_path not in _background_cache:
+        _background_cache[background_path] = load_image(background_path)
+
+    bg_img = _background_cache[background_path]
+
     for obj in game_world.world[0]:
         if hasattr(obj, 'background'):
             obj.background = bg_img
