@@ -143,7 +143,6 @@ class Idle:
             if space_down(e):
                 self.handle_space(e)
                 return
-            return
             if mouse_left_down(e):
                 self.player.weapon.attack()
                 return
