@@ -8,7 +8,7 @@ class Weapon:
 
     def __init__(self, own, damage=10, attack_duration=0.3, cooldown=0.5):
         if Weapon.image is None:
-            Weapon.image = load_image('asset/Weapon/ice_sword.png')
+            Weapon.image = load_image('asset/Weapon/ice_sword_particle.png')
         self.own = own
         self.damage = damage
         self.cooldown = cooldown
@@ -18,21 +18,31 @@ class Weapon:
         self.attack_timer = 0
         self.cooldown_timer = 0
 
-        self.attack_range = 50
-        self.attack_width = 30
-        self.attack_height = 20
+        self.frame = 0
+
+        self.attack_range = 30
+        self.attack_width = 41 * 1.5
+        self.attack_height = 55 * 1.5
 
     def attack(self):
         if self.cooldown_timer <= 0 and not self.is_attacking:
             self.is_attacking = True
             self.attack_timer = self.attack_duration
             self.cooldown_timer = self.cooldown
+            self.frame = 0
             print(f"공격, 데미지: {self.damage}")
         pass
 
     def update(self):
         if self.is_attacking:
             self.attack_timer -= game_framework.frame_time
+
+            progress = 1.0 - (self.attack_timer / self.attack_duration)
+            self.frame = int(progress * 5)
+
+            if self.frame >= 5:
+                self.frame = 5 - 1
+
             if self.attack_timer <= 0:
                 self.is_attacking = False
                 print("공격 완료")
@@ -46,16 +56,9 @@ class Weapon:
 
         cam = game_world.camera
 
-        progress = self.attack_timer / self.attack_duration
-
-        if self.own.face_dir == 1:
-            angle = math.radians(90 - (135 * (1 - progress)))
-        else:
-            angle = math.radians(-90 + (135 * (1 - progress)))
-
         offset_x = self.attack_range * self.own.face_dir
-        wx = self.own.x + offset_x - (10 * self.own.face_dir)
-        wy = self.own.y - 20
+        wx = self.own.x + offset_x + (15 * self.own.face_dir)
+        wy = self.own.y - 25
 
         if cam:
             sx, sy = cam.to_camera(wx, wy)
@@ -64,9 +67,9 @@ class Weapon:
 
         if Weapon.image:
             if self.own.face_dir == 1:
-                Weapon.image.clip_composite_draw(0, 0, Weapon.image.w, Weapon.image.h,angle, '', sx, sy, self.attack_width, self.attack_height)
+                Weapon.image.clip_draw(self.frame * 41, 0, 41, 55, sx, sy, self.attack_width, self.attack_height)
             else:
-                Weapon.image.clip_composite_draw(0, 0, Weapon.image.w, Weapon.image.h,angle, 'h', sx, sy, self.attack_width, self.attack_height)
+                Weapon.image.clip_composite_draw(self.frame * 41, 0, 41, 55 ,0, 'h', sx, sy, self.attack_width, self.attack_height)
         if game_framework.show_bb:
             if cam:
                 l, b, r, t = self.get_bb()
@@ -81,8 +84,8 @@ class Weapon:
             return 0, 0, 0, 0
 
         offset_x = self.attack_range * self.own.face_dir
-        wx = self.own.x + offset_x - (10 * self.own.face_dir)
-        wy = self.own.y - 20
+        wx = self.own.x + offset_x + (15 * self.own.face_dir)
+        wy = self.own.y - 25
 
         half_w = self.attack_width // 2
         half_h = self.attack_height // 2
