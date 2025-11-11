@@ -1,5 +1,6 @@
 from pico2d import load_image , get_time, draw_rectangle
-from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s, SDLK_SPACE
+from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s, SDLK_SPACE, SDL_MOUSEBUTTONDOWN, \
+    SDL_BUTTON_LEFT
 
 import round1
 from lobby import lobbyCollision
@@ -9,7 +10,7 @@ import game_world
 from job import Player_job
 import job
 import map as game_map
-
+from weapon import Weapon
 
 def d_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_d
@@ -31,6 +32,9 @@ def s_up(e):
 def space_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_SPACE
 
+def mouse_left_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_MOUSEBUTTONDOWN and e[1].button == SDL_BUTTON_LEFT
+
 PIXEL_PER_METER = (10.0 / 0.3) # 10 pixel 30 cm
 RUN_SPEED_KMPH = 20.0 # Km / Hour
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
@@ -50,6 +54,9 @@ class Walk:
         if e[0] == 'INPUT':
             if space_down(e):
                 self.handle_space(e)
+                return
+            if mouse_left_down(e):
+                self.player.weapon.attack()
                 return
         self.update_key_and_dir(e)
 
@@ -84,6 +91,10 @@ class Walk:
             self.player.job.clip_draw(int(self.player.frame) * 40, 40, 40, 40, sx, sy, 80, 80)
         else:
             self.player.job.clip_composite_draw(int(self.player.frame) * 40, 40, 40, 40, 0,'h', sx, sy, 80, 80)
+
+        if self.player.weapon:
+            self.player.weapon.draw()
+
 
     def update_key_and_dir(self, e):
         # 키 상태 업데이트
@@ -132,6 +143,10 @@ class Idle:
             if space_down(e):
                 self.handle_space(e)
                 return
+            return
+            if mouse_left_down(e):
+                self.player.weapon.attack()
+                return
             if d_up(e) or a_up(e) or w_up(e) or s_up(e):
                 self.update_key_and_dir(e)
                 return
@@ -158,6 +173,9 @@ class Idle:
             self.player.job.clip_draw(int(self.player.frame) * 40, 80, 40, 40,sx, sy, 80, 80)
         else:
             self.player.job.clip_composite_draw(int(self.player.frame) * 40, 80, 40, 40,0, 'h', sx, sy, 80, 80)
+
+        if self.player.weapon:
+            self.player.weapon.draw()
 
     def update_key_and_dir(self, e):
         if d_up(e):
@@ -199,6 +217,8 @@ class Player:
 
         self.keys = {'d': False, 'a': False, 'w': False, 's': False}
 
+        self.weapon = Weapon(self, damage=15, attack_duration=0.2, cooldown=0.4)
+
         self.IDLE = Idle(self)
         self.WALK = Walk(self)
 
@@ -207,10 +227,10 @@ class Player:
             {
                 self.IDLE: {d_down: self.WALK,a_down: self.WALK,w_down: self.WALK,s_down: self.WALK,
                             d_up: self.WALK, a_up: self.WALK,w_up: self.WALK, s_up: self.WALK
-                            ,space_down:  self.IDLE},
+                            ,space_down:  self.IDLE, mouse_left_down: self.IDLE},
                 self.WALK: {d_down: self.WALK, d_up: self.WALK,a_down: self.WALK, a_up: self.WALK,
                             w_down: self.WALK, w_up: self.WALK,s_down: self.WALK, s_up: self.WALK,
-                            space_down: self.WALK}
+                            space_down: self.WALK, mouse_left_down: self.WALK}
             })
 
     def draw(self):
@@ -226,6 +246,9 @@ class Player:
 
     def update(self):
         self.state_machine.update()
+
+        if self.weapon:
+            self.weapon.update()
 
     def handle_event(self,event):
         self.state_machine.handle_state_events(('INPUT', event))
