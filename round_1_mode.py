@@ -28,6 +28,9 @@ def init():
 
     game_world.add_object(player, 3)
 
+    if player.weapon:
+        game_world.add_collision_pair('weapon:monster', player.weapon, None)
+
     camera.update(player.x, player.y)
 
 def handle_events():
