@@ -1,6 +1,7 @@
 from pico2d import load_image, draw_rectangle
 import game_framework
 import game_world
+import math
 
 class Weapon:
     image = None
@@ -39,13 +40,18 @@ class Weapon:
         if self.cooldown_timer > 0:
             self.cooldown_timer -= game_framework.frame_time
 
-        pass
-
     def draw(self):
         if not self.is_attacking:
             return
 
         cam = game_world.camera
+
+        progress = self.attack_timer / self.attack_duration
+
+        if self.own.face_dir == 1:
+            angle = math.radians(90 - (135 * (1 - progress)))
+        else:
+            angle = math.radians(-90 + (135 * (1 - progress)))
 
         offset_x = self.attack_range * self.own.face_dir
         wx = self.own.x + offset_x - (10 * self.own.face_dir)
@@ -58,11 +64,9 @@ class Weapon:
 
         if Weapon.image:
             if self.own.face_dir == 1:
-                Weapon.image.draw(sx, sy, self.attack_width, self.attack_height)
+                Weapon.image.clip_composite_draw(0, 0, Weapon.image.w, Weapon.image.h,angle, '', sx, sy, self.attack_width, self.attack_height)
             else:
-                Weapon.image.clip_composite_draw(0, 0, Weapon.image.w, Weapon.image.h,
-                                             0, 'h', sx, sy, self.attack_width, self.attack_height)
-
+                Weapon.image.clip_composite_draw(0, 0, Weapon.image.w, Weapon.image.h,angle, 'h', sx, sy, self.attack_width, self.attack_height)
         if game_framework.show_bb:
             if cam:
                 l, b, r, t = self.get_bb()
