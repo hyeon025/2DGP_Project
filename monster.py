@@ -14,6 +14,7 @@ ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 FRAMES_PER_ACTION = 8
 
 class Monster:
+    image = None
     def __init__(self,x,y,hp,target = None):
         self.x = x
         self.y = y
@@ -24,8 +25,10 @@ class Monster:
         self.hp = hp
         self.target = target
         self.alive = True
+        if Monster.image is None:
+            Monster.image = load_image('asset/Monster/egg.png')
+        self.image = Monster.image
 
-        self.image = load_image('asset/Monster/egg.png')
     def update(self):
         self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
 
