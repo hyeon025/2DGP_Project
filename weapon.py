@@ -16,3 +16,19 @@ class Weapon:
         self.attack_range = 100
         self.attack_width = 100
         self.attack_height = 100
+
+    def attack(self):
+        pass
+
+    def update(self):
+        pass
+
+    def draw(self):
+        pass
+
+    def get_bb(self):
+        pass
+
+    def handle_collision(self, group, other):
+        pass
+
