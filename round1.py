@@ -181,7 +181,9 @@ def round1Collision(player):
                 if rooms[1]['num'] > 0:
                     change_map('asset/Map/round1_close_map.png',
                                'asset/Map/round1_close_collision.png', 1, player)
-
+                else:
+                    change_map('asset/Map/round1_map.png',
+                               'asset/Map/round1_collision.png', 1, player)
             elif r == 45 and g == 45 and b == 45:
                 print('3번방 입장!')
             elif r == 46 and g == 46 and b == 46:
