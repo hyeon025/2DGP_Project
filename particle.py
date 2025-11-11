@@ -7,7 +7,9 @@ job_selec_atf = [(300,340),(600,340),(900,340),(600,680)]
 
 class Particle:
     def __init__(self,x,y):
-        self.image = load_image('asset/Particle/atf_star.png')
+        if Particle.image is None:
+            Particle.image = load_image('asset/Particle/atf_star.png')
+        self.image = Particle.image
         self.x = x
         self.y = y
 
