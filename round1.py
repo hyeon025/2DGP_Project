@@ -73,9 +73,10 @@ def change_map(background_path, collision_path, room_num, player):
     current_room = room_num
     load_collision_map(collision_path)
 
+    bg_img = load_image(background_path)
     for obj in game_world.world[0]:
         if hasattr(obj, 'background'):
-            obj.background = load_image(background_path)
+            obj.background = bg_img
 
 
     spawn_monsters(room_num, player)

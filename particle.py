@@ -6,6 +6,8 @@ import game_world
 job_selec_atf = [(300,340),(600,340),(900,340),(600,680)]
 
 class Particle:
+    image = None
+
     def __init__(self,x,y):
         if Particle.image is None:
             Particle.image = load_image('asset/Particle/atf_star.png')
