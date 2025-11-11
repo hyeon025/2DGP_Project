@@ -30,6 +30,9 @@ class Monster:
         self.image = Monster.image
 
     def update(self):
+        if not self.alive:
+            return
+
         self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
 
         if self.target is not None:
@@ -54,20 +57,22 @@ class Monster:
             self.face_dir = -1
 
     def draw(self):
-        if not self.alive:
-            return
-
         cam = game_world.camera
         if cam:
             sx, sy = cam.to_camera(self.x, self.y)
         else:
             sx, sy = self.x, self.y
 
-        if self.face_dir == 1:
-            self.image.clip_draw(int(self.frame) * 24, 48, 24, 24, sx, sy, 40, 40)
+        if self.alive:
+            if self.face_dir == 1:
+                self.image.clip_draw(int(self.frame) * 24, 48, 24, 24, sx, sy, 40, 40)
+            else:
+                self.image.clip_composite_draw(int(self.frame) * 24, 48, 24, 24, 0, 'h', sx, sy, 40, 40)
         else:
-            self.image.clip_composite_draw(int(self.frame) * 24, 48, 24, 24, 0, 'h', sx, sy, 40, 40)
-
+            if self.face_dir == 1:
+                self.image.clip_draw(0, 24, 24, 24, sx, sy, 40, 40)
+            else:
+                self.image.clip_composite_draw(0, 24, 24, 24, 0,'h',sx, sy, 40, 40)
         if game_framework.show_bb:
             if cam:
                 l, b, r, t = self.get_bb()
