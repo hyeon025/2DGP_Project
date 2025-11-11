@@ -1,4 +1,5 @@
 from pico2d import load_image
+import math
 import game_framework
 import game_world
 
@@ -13,7 +14,7 @@ ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 FRAMES_PER_ACTION = 8
 
 class Monster:
-    def __init__(self,x,y,hp):
+    def __init__(self,x,y,hp,target = None):
         self.x = x
         self.y = y
         self.frame = 0
@@ -21,14 +22,28 @@ class Monster:
         self.dir_x = 0
         self.dir_y = 0
         self.hp = hp
+        self.target = target
         self.alive = True
 
         self.image = load_image('asset/Monster/egg.png')
     def update(self):
         self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
 
-        self.x += self.dir_x * RUN_SPEED_PPS * game_framework.frame_time
-        self.y += self.dir_y * RUN_SPEED_PPS * game_framework.frame_time
+        if self.target is not None:
+            dx = self.target.x - self.x
+            dy = self.target.y - self.y
+            dist = math.hypot(dx, dy)
+            if dist > 1:
+                nx = dx / dist
+                ny = dy / dist
+                speed_factor = 0.6
+                self.dir_x = nx
+                self.dir_y = ny
+                self.x += self.dir_x * RUN_SPEED_PPS * speed_factor * game_framework.frame_time
+                self.y += self.dir_y * RUN_SPEED_PPS * speed_factor * game_framework.frame_time
+            else:
+                self.dir_x = 0
+                self.dir_y = 0
 
         if self.dir_x > 0:
             self.face_dir = 1

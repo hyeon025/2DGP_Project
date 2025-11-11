@@ -60,10 +60,10 @@ def spawn_monsters(room_num, player):
             spawn_x = base_x + random.randint(-100, 400)
             spawn_y = base_y + random.randint(-100, 400)
 
-            monster = Monster(spawn_x, spawn_y, monster_type)
+            monster = Monster(spawn_x, spawn_y, monster_type,player)
             monsters.append(monster)
             game_world.add_object(monster, 2)
-            game_world.add_collision_pair('player:monster', None, monster)
+            game_world.add_collision_pair('player:monster', player, monster)
 
 
 def change_map(background_path, collision_path, room_num, player):
