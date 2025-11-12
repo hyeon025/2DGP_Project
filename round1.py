@@ -1,6 +1,6 @@
 import random
 
-from pico2d import load_image
+from pico2d import load_image, delay
 from PIL import Image
 import game_framework
 import game_world
