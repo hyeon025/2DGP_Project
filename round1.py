@@ -98,7 +98,7 @@ def change_map(background_path, collision_path, room_num, player):
             obj.background = bg_img
 
 
-    spawn_monsters(room_num, player)
+    # spawn_monsters(room_num, player)
 
 
 def round1Collision(player):
@@ -181,6 +181,7 @@ def round1Collision(player):
                 if rooms[1]['num'] > 0:
                     change_map('asset/Map/round1_close_map.png',
                                'asset/Map/round1_close_collision.png', 1, player)
+                    spawn_monsters(1, player)
                 else:
                     change_map('asset/Map/round1_map.png',
                                'asset/Map/round1_collision.png', 1, player)

@@ -102,9 +102,14 @@ class Weapon:
                 print(f"몬스터 공격, 몬스터 남은 HP: {other.hp}")
                 if other.hp <= 0:
                     other.alive = False
-
+                    game_world.collision_pairs['weapon:monster'][1].remove(other)
                     round1.rooms[round1.current_room]['num'] -= 1
+
+                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.own)
+
                     # if round1.rooms[round1.current_room]['num'] == 0:
                     #     import round_1_mode
-                    #     round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1,round_1_mode.player)
+                    #     if round1.rooms[1]['num'] == 0:
+                    #         round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1,self.own)
 
