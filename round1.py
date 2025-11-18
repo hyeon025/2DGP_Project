@@ -58,9 +58,12 @@ def load_collision_map(map_path):
 def spawn_monsters(room_num, player):
     global monsters
 
-    for monster in monsters:
-        game_world.remove_object(monster)
-    monsters.clear()
+    # for monster in monsters:
+    #     game_world.remove_object(monster)
+    # monsters.clear()
+
+    if rooms[room_num]['type'] == 0 or rooms[room_num]['num'] == 0:
+        return
 
     monster_count = rooms[room_num]['num']
     monster_type = rooms[room_num]['type']
