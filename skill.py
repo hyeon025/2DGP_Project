@@ -14,15 +14,17 @@ class Skill:
         self.duration_timer = 0
 
     def use(self):
-        if self.cooldown_timer <= 0:
-            self.is_active = True
-            self.cooldown_timer = self.cooldown
-            self.duration_timer = self.duration
-            self.on_use()
-            return True
-        else:
+        if self.is_active:
+            print("스킬이 이미 사용 중입니다.")
+            return False
+        if self.cooldown_timer > 0:
             print(f"쿨타임 남음: {self.cooldown_timer:.1f}초")
             return False
+        self.is_active = True
+        self.cooldown_timer = self.cooldown
+        self.duration_timer = self.duration
+        self.on_use()
+        return True
 
     def on_use(self):
         pass
@@ -62,7 +64,7 @@ class AlchemistSkill(Skill):
         if AlchemistSkill.image is None:
             AlchemistSkill.image = load_image('asset/Weapon/alchemist_1.png')
 
-        self.cooldown = 0.2
+        self.cooldown = 0.5
         self.duration = 0.5
         self.damage = 40
         self.range = 250
@@ -81,6 +83,7 @@ class AlchemistSkill(Skill):
         self.target_x = self.start_x + (self.range * self.skill_dir)
         self.target_y = self.start_y
         self.frame = 0
+        self.explosion_timer = 0
 
     def on_update(self):
         progress = 1.0 - (self.duration_timer / self.duration)
@@ -90,13 +93,15 @@ class AlchemistSkill(Skill):
         self.throw_y = self.start_y + math.sin(progress * math.pi) * 50
 
     def on_end(self):
-        self.explosion_timer = 1.0
+        self.explosion_timer = 0.5
+        # game_world.remove_object(self)
 
     def update(self):
         super().update()
         if not self.is_active and self.explosion_timer > 0:
             self.explosion_timer -= game_framework.frame_time
-
+            if self.explosion_timer <= 0:
+                game_world.remove_object(self)
 
     def draw(self):
 

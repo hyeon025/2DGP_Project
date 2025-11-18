@@ -21,14 +21,14 @@ def init():
     game_world.add_object(map_obj,0)
 
     job = Job()
-    game_world.add_object(job,2)
+    game_world.add_object(job,3)
 
     player = Player(current_job)
-    game_world.add_object(player,3)
+    game_world.add_object(player,4)
 
     for x,y in [(300,340),(600,340),(900,340),(600,680)]:
         particles = Particle(x,y)
-        game_world.add_object(particles,2)
+        game_world.add_object(particles,3)
         game_world.add_collision_pair('particle:player',particles,player)
 
 

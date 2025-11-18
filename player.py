@@ -103,8 +103,8 @@ class Walk:
         if self.player.weapon:
             self.player.weapon.draw()
 
-        if self.player.skill:
-            self.player.skill.draw()
+        # if self.player.skill:
+        #     self.player.skill.draw()
 
     def update_key_and_dir(self, e):
         # 키 상태 업데이트
@@ -189,8 +189,8 @@ class Idle:
         if self.player.weapon:
             self.player.weapon.draw()
 
-        if self.player.skill:
-            self.player.skill.draw()
+        # if self.player.skill:
+        #     self.player.skill.draw()
 
     def update_key_and_dir(self, e):
         if d_up(e):
@@ -267,8 +267,8 @@ class Player:
         if self.weapon:
             self.weapon.update()
 
-        if self.skill:
-            self.skill.update()
+        # if self.skill:
+        #     self.skill.update()
 
     def handle_event(self,event):
         self.state_machine.handle_state_events(('INPUT', event))
@@ -285,10 +285,17 @@ class Player:
 
     def use_skill(self):
         if self.skill:
+            if self.skill.is_active:
+                print("스킬이 이미 사용 중입니다.")
+                return
+            if self.skill in game_world.world[2]:
+                print("스킬 객체가 이미 월드에 있음")
+                return
             success = self.skill.use()
-            if success and self.skill.is_active:
+            if success:
                 if hasattr(self.skill, 'handle_collision'):
                     game_world.add_collision_pair('skill:monster', self.skill, None)
+                game_world.add_object(self.skill, 2)
 
     def try_change_job(self):
         if game_map.current_map != "Lobby" or not self.colliding_particle:
