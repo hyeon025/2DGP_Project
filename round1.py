@@ -99,6 +99,9 @@ def spawn_monsters(room_num, player):
             if player.weapon:
                 game_world.add_collision_pair('weapon:monster', player.weapon, monster)
 
+            if player.skill:
+                game_world.add_collision_pair('skill:monster', player.skill, monster)
+
 def change_map(background_path, collision_path, room_num, player):
     global current_background, current_room
 

@@ -293,7 +293,7 @@ class Player:
                 return
             success = self.skill.use()
             if success:
-                if hasattr(self.skill, 'handle_collision'):
+                for layer in game_world.world[3]:
                     game_world.add_collision_pair('skill:monster', self.skill, None)
                 game_world.add_object(self.skill, 2)
 
