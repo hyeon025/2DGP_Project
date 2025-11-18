@@ -71,20 +71,22 @@ class AlchemistSkill(Skill):
         self.throw_y = 0
         self.target_x = 0
         self.target_y = 0
+        self.skill_dir = 1
 
     def on_use(self):
-        self.throw_x = self.owner.x
-        self.throw_y = self.owner.y
-        self.target_x = self.owner.x + (self.range * self.owner.face_dir)
-        self.target_y = self.owner.y
+        self.start_x = self.owner.x
+        self.start_y = self.owner.y
+        self.skill_dir = self.owner.face_dir
+        self.target_x = self.start_x + (self.range * self.skill_dir)
+        self.target_y = self.start_y
         self.frame = 0
 
     def on_update(self):
         progress = 1.0 - (self.duration_timer / self.duration)
         self.frame = int(progress * 5) % 6
 
-        self.throw_x = self.owner.x + (self.range * self.owner.face_dir * progress)
-        self.throw_y = self.owner.y + math.sin(progress * math.pi) * 50
+        self.throw_x = self.start_x + (self.range * self.skill_dir * progress)
+        self.throw_y = self.start_y + math.sin(progress * math.pi) * 50
 
     def on_end(self):
         pass
