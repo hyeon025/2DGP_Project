@@ -108,8 +108,6 @@ class Weapon:
                     if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                         round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.own)
 
-                    # if round1.rooms[round1.current_room]['num'] == 0:
-                    #     import round_1_mode
-                    #     if round1.rooms[1]['num'] == 0:
-                    #         round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1,self.own)
+                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.own)
 

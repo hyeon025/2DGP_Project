@@ -10,9 +10,9 @@ _background_cache = {}
 
 rooms = {
     1: {'type': 1, 'num': 10},
-    2: {'type': 2, 'num': 0},
+    2: {'type': 1, 'num': 14},
     3: {'type': 3, 'num': 0},
-    4: {'type': 1, 'num': 10},
+    4: {'type': 2, 'num': 0},
 }
 
 _collision_data = None
@@ -67,28 +67,34 @@ def spawn_monsters(room_num, player):
 
     if room_num == 1:
         current_monster_counts = {1: 4, 2: 6}
-
         base_x = 1960 * 2
         base_y = 2450 * 2
 
-        for monster_type, count in current_monster_counts.items():
-            for i in range(count):
-                spawn_x = base_x + random.randint(-100, 400)
-                spawn_y = base_y + random.randint(-100, 400)
+    elif room_num == 2:
+        current_monster_counts = {1: 10, 2: 4}
+        base_x = 1960 * 2
+        base_y = 3186 * 2
 
-                if monster_type == 1:
-                    monster = EggMonster(spawn_x, spawn_y, player)
-                elif monster_type == 2:
-                    monster = AngryEggMonster(spawn_x, spawn_y, player)
-                else:
-                    continue
 
-                monsters.append(monster)
-                game_world.add_object(monster, 2)
-                game_world.add_collision_pair('player:monster', player, monster)
 
-                if player.weapon:
-                    game_world.add_collision_pair('weapon:monster', player.weapon, monster)
+    for monster_type, count in current_monster_counts.items():
+        for i in range(count):
+            spawn_x = base_x + random.randint(-100, 400)
+            spawn_y = base_y + random.randint(-100, 400)
+
+            if monster_type == 1:
+                monster = EggMonster(spawn_x, spawn_y, player)
+            elif monster_type == 2:
+                monster = AngryEggMonster(spawn_x, spawn_y, player)
+            else:
+                continue
+
+            monsters.append(monster)
+            game_world.add_object(monster, 2)
+            game_world.add_collision_pair('player:monster', player, monster)
+
+            if player.weapon:
+                game_world.add_collision_pair('weapon:monster', player.weapon, monster)
 
 def change_map(background_path, collision_path, room_num, player):
     global current_background, current_room
@@ -158,7 +164,7 @@ def round1Collision(player):
         else:
             r = g = b = pixel if isinstance(pixel, int) else pixel[0]
 
-        # print('픽셀 값:', r, g, b)
+        print('픽셀 값:', r, g, b)
 
         # 검은색 충돌
         if r < 1 and g < 1 and b < 1:
@@ -183,9 +189,17 @@ def round1Collision(player):
             else:
                 r = g = b = pixel if isinstance(pixel, int) else pixel[0]
 
-            if r == 43 and g == 43 and b == 43:
+            if r == 63 and g == 92 and b == 135:
                 print('2번방 입장!')
-            elif r == 44 and g == 44 and b == 44:
+                if rooms[2]['num'] > 0:
+                    change_map('asset/Map/round1_close_map.png',
+                               'asset/Map/round1_close_collision.png', 2, player)
+                    spawn_monsters(2, player)
+                else:
+                    change_map('asset/Map/round1_map.png',
+                               'asset/Map/round1_collision.png', 2, player)
+
+            elif r == 255 and g == 0 and b == 0:
                 print('1번방 입장!')
                 if rooms[1]['num'] > 0:
                     change_map('asset/Map/round1_close_map.png',
