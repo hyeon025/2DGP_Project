@@ -93,7 +93,7 @@ def spawn_monsters(room_num, player):
                 continue
 
             monsters.append(monster)
-            game_world.add_object(monster, 2)
+            game_world.add_object(monster, 3)
             game_world.add_collision_pair('player:monster', player, monster)
 
             if player.weapon:
