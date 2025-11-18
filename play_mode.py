@@ -23,7 +23,7 @@ def init():
     job = Job()
     game_world.add_object(job,2)
 
-    player = Player(Player_job[current_job])
+    player = Player(current_job)
     game_world.add_object(player,3)
 
     for x,y in [(300,340),(600,340),(900,340),(600,680)]:

@@ -7,7 +7,7 @@ from lobby import lobbyCollision
 from state_machine import StateMachine
 import game_framework
 import game_world
-from job import Player_job
+from job import Player_job, current_job
 import job
 import map as game_map
 from weapon import Weapon
@@ -217,7 +217,7 @@ class Idle:
             self.player.WALK.enter(e)
 
 class Player:
-    def __init__(self, job):
+    def __init__(self, _job):
         self.x = 600
         self.y = 300
         self.job = load_image(Player_job[job.current_job])
@@ -231,7 +231,7 @@ class Player:
 
         self.weapon = Weapon(self, damage=15, attack_duration=0.2, cooldown=0.4)
 
-        self.skill = create_skill(job.current_job, self)
+        self.skill = create_skill(job.current_job,self)
 
         self.IDLE = Idle(self)
         self.WALK = Walk(self)
@@ -241,10 +241,10 @@ class Player:
             {
                 self.IDLE: {d_down: self.WALK,a_down: self.WALK,w_down: self.WALK,s_down: self.WALK,
                             d_up: self.WALK, a_up: self.WALK,w_up: self.WALK, s_up: self.WALK
-                            ,space_down:  self.IDLE, mouse_left_down: self.IDLE},
+                            ,space_down:  self.IDLE, mouse_left_down: self.IDLE,mouse_right_down: self.IDLE,},
                 self.WALK: {d_down: self.WALK, d_up: self.WALK,a_down: self.WALK, a_up: self.WALK,
                             w_down: self.WALK, w_up: self.WALK,s_down: self.WALK, s_up: self.WALK,
-                            space_down: self.WALK, mouse_left_down: self.WALK}
+                            space_down: self.WALK, mouse_left_down: self.WALK,mouse_right_down: self.WALK,}
             })
 
     def draw(self):
@@ -325,5 +325,5 @@ class Player:
                     job.current_job = job_name
                     if job_name in Player_job:
                         self.change_job(Player_job[job_name])
-                        self.skill = create_skill(job_name, self)
+                        self.skill = create_skill(job_name,self)
                         print(f"직업 변경: {job_name}")
