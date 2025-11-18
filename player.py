@@ -189,6 +189,9 @@ class Idle:
         if self.player.weapon:
             self.player.weapon.draw()
 
+        if self.player.skill:
+            self.player.skill.draw()
+
     def update_key_and_dir(self, e):
         if d_up(e):
             self.player.keys['d'] = False
