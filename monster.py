@@ -15,7 +15,7 @@ FRAMES_PER_ACTION = 8
 
 class Monster:
     image = None
-    def __init__(self,x,y,hp,target = None):
+    def __init__(self,x,y,hp,size,target = None):
         self.x = x
         self.y = y
         self.frame = 0
@@ -25,9 +25,7 @@ class Monster:
         self.hp = hp
         self.target = target
         self.alive = True
-        if Monster.image is None:
-            Monster.image = load_image('asset/Monster/egg.png')
-        self.image = Monster.image
+        self.size = size
 
     def update(self):
         if not self.alive:
@@ -42,11 +40,10 @@ class Monster:
             if dist > 1:
                 nx = dx / dist
                 ny = dy / dist
-                speed_factor = 0.6
                 self.dir_x = nx
                 self.dir_y = ny
-                self.x += self.dir_x * RUN_SPEED_PPS * speed_factor * game_framework.frame_time
-                self.y += self.dir_y * RUN_SPEED_PPS * speed_factor * game_framework.frame_time
+                self.x += self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+                self.y += self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
             else:
                 self.dir_x = 0
                 self.dir_y = 0
@@ -65,9 +62,9 @@ class Monster:
 
         if self.alive:
             if self.face_dir == 1:
-                self.image.clip_draw(int(self.frame) * 24, 48, 24, 24, sx, sy, 40, 40)
+                self.image.clip_draw(int(self.frame) * 24, 72, 24, 24, sx, sy, 40, 40)
             else:
-                self.image.clip_composite_draw(int(self.frame) * 24, 48, 24, 24, 0, 'h', sx, sy, 40, 40)
+                self.image.clip_composite_draw(int(self.frame) * 24, 72, 24, 24, 0, 'h', sx, sy, 40, 40)
         else:
             if self.face_dir == 1:
                 self.image.clip_draw(0, 24, 24, 24, sx, sy, 40, 40)
@@ -86,6 +83,27 @@ class Monster:
         pass
 
     def get_bb(self):
-        return self.x - 12, self.y - 12, self.x + 12, self.y + 12
+        return self.x - self.size, self.y - self.size, self.x + self.size, self.y + self.size
 
 
+
+class EggMonster(Monster):
+    image = None
+
+    def __init__(self, x, y,target=None):
+        super().__init__(x, y, hp = 10, size = 12, target = target)
+        if EggMonster.image is None:
+            EggMonster.image = load_image('asset/Monster/egg.png')
+        self.image = EggMonster.image
+        self.size = 12
+        self.speed_factor = 0.6
+
+class AngryEggMonster(Monster):
+    image = None
+
+    def __init__(self, x, y,target=None):
+        super().__init__(x, y, hp = 20, size = 12, target = target)
+        if AngryEggMonster.image is None:
+            AngryEggMonster.image = load_image('asset/Monster/angry_egg.png')
+        self.image = AngryEggMonster.image
+        self.speed_factor = 1.0

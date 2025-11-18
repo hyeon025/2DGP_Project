@@ -4,7 +4,7 @@ from pico2d import load_image, delay
 from PIL import Image
 import game_framework
 import game_world
-from monster import Monster
+from monster import Monster, AngryEggMonster, EggMonster
 
 _background_cache = {}
 
@@ -66,20 +66,29 @@ def spawn_monsters(room_num, player):
     monster_type = rooms[room_num]['type']
 
     if room_num == 1:
+        current_monster_counts = {1: 4, 2: 6}
+
         base_x = 1960 * 2
         base_y = 2450 * 2
 
-        for i in range(monster_count):
-            spawn_x = base_x + random.randint(-100, 400)
-            spawn_y = base_y + random.randint(-100, 400)
+        for monster_type, count in current_monster_counts.items():
+            for i in range(count):
+                spawn_x = base_x + random.randint(-100, 400)
+                spawn_y = base_y + random.randint(-100, 400)
 
-            monster = Monster(spawn_x, spawn_y, monster_type,player)
-            monsters.append(monster)
-            game_world.add_object(monster, 2)
-            game_world.add_collision_pair('player:monster', player, monster)
+                if monster_type == 1:
+                    monster = EggMonster(spawn_x, spawn_y, player)
+                elif monster_type == 2:
+                    monster = AngryEggMonster(spawn_x, spawn_y, player)
+                else:
+                    continue
 
-            if player.weapon:
-                game_world.add_collision_pair('weapon:monster', player.weapon, monster)
+                monsters.append(monster)
+                game_world.add_object(monster, 2)
+                game_world.add_collision_pair('player:monster', player, monster)
+
+                if player.weapon:
+                    game_world.add_collision_pair('weapon:monster', player.weapon, monster)
 
 def change_map(background_path, collision_path, room_num, player):
     global current_background, current_room
