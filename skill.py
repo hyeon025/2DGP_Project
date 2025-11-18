@@ -92,17 +92,21 @@ class AlchemistSkill(Skill):
         pass
 
     def draw(self):
-        if not self.is_active:
-            return
 
         cam = game_world.camera
         if cam:
             sx, sy = cam.to_camera(self.throw_x, self.throw_y)
+            tx, ty = cam.to_camera(self.target_x, self.target_y)
         else:
             sx, sy = self.throw_x, self.throw_y
+            tx, ty = self.target_x, self.target_y
 
-        if self.image:
-            self.image.clip_draw(0, 0, 21, 21, sx, sy, 40, 40)
+        if self.is_active:
+            if self.image:
+                self.image.clip_draw(0, 0, 21, 21, sx, sy, 30, 30)
+        if not self.is_active and self.duration_timer <= 0:
+            if self.image:
+                self.image.clip_draw(82, 0, 61, 61, tx, ty, 60, 60)
 
         if game_framework.show_bb:
             if cam:
