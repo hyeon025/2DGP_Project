@@ -1,6 +1,6 @@
 from pico2d import load_image , get_time, draw_rectangle
 from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s, SDLK_SPACE, SDL_MOUSEBUTTONDOWN, \
-    SDL_BUTTON_LEFT
+    SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT
 
 import round1
 from lobby import lobbyCollision
@@ -11,6 +11,7 @@ from job import Player_job
 import job
 import map as game_map
 from weapon import Weapon
+from skill import create_skill
 
 def d_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_d
@@ -35,6 +36,10 @@ def space_down(e):
 def mouse_left_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_MOUSEBUTTONDOWN and e[1].button == SDL_BUTTON_LEFT
 
+def mouse_right_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_MOUSEBUTTONDOWN and e[1].button == SDL_BUTTON_RIGHT
+
+
 PIXEL_PER_METER = (10.0 / 0.3) # 10 pixel 30 cm
 RUN_SPEED_KMPH = 20.0 # Km / Hour
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
@@ -57,6 +62,9 @@ class Walk:
                 return
             if mouse_left_down(e):
                 self.player.weapon.attack()
+                return
+            if mouse_right_down(e):
+                self.player.use_skill()
                 return
         self.update_key_and_dir(e)
 
@@ -95,6 +103,8 @@ class Walk:
         if self.player.weapon:
             self.player.weapon.draw()
 
+        if self.player.skill:
+            self.player.skill.draw()
 
     def update_key_and_dir(self, e):
         # 키 상태 업데이트
@@ -145,6 +155,9 @@ class Idle:
                 return
             if mouse_left_down(e):
                 self.player.weapon.attack()
+                return
+            if mouse_right_down(e):
+                self.player.use_skill()
                 return
             if d_up(e) or a_up(e) or w_up(e) or s_up(e):
                 self.update_key_and_dir(e)
@@ -207,7 +220,7 @@ class Player:
     def __init__(self, job):
         self.x = 600
         self.y = 300
-        self.job = load_image(job)
+        self.job = load_image(Player_job[job.current_job])
         self.face_dir = 1
         self.dir_x = 0
         self.dir_y = 0
@@ -217,6 +230,8 @@ class Player:
         self.keys = {'d': False, 'a': False, 'w': False, 's': False}
 
         self.weapon = Weapon(self, damage=15, attack_duration=0.2, cooldown=0.4)
+
+        self.skill = create_skill(job.current_job, self)
 
         self.IDLE = Idle(self)
         self.WALK = Walk(self)
@@ -249,6 +264,9 @@ class Player:
         if self.weapon:
             self.weapon.update()
 
+        if self.skill:
+            self.skill.update()
+
     def handle_event(self,event):
         self.state_machine.handle_state_events(('INPUT', event))
 
@@ -262,6 +280,12 @@ class Player:
         if group == 'particle:player':
             self.colliding_particle = other
 
+    def use_skill(self):
+        if self.skill:
+            success = self.skill.use()
+            if success and self.skill.is_active:
+                if hasattr(self.skill, 'handle_collision'):
+                    game_world.add_collision_pair('skill:monster', self.skill, None)
 
     def try_change_job(self):
         if game_map.current_map != "Lobby" or not self.colliding_particle:
@@ -301,4 +325,5 @@ class Player:
                     job.current_job = job_name
                     if job_name in Player_job:
                         self.change_job(Player_job[job_name])
+                        self.skill = create_skill(job_name, self)
                         print(f"직업 변경: {job_name}")
