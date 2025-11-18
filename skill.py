@@ -72,6 +72,7 @@ class AlchemistSkill(Skill):
         self.target_x = 0
         self.target_y = 0
         self.skill_dir = 1
+        self.explosion_timer = 0
 
     def on_use(self):
         self.start_x = self.owner.x
@@ -89,7 +90,13 @@ class AlchemistSkill(Skill):
         self.throw_y = self.start_y + math.sin(progress * math.pi) * 50
 
     def on_end(self):
-        pass
+        self.explosion_timer = 1.0
+
+    def update(self):
+        super().update()
+        if not self.is_active and self.explosion_timer > 0:
+            self.explosion_timer -= game_framework.frame_time
+
 
     def draw(self):
 
@@ -104,7 +111,8 @@ class AlchemistSkill(Skill):
         if self.is_active:
             if self.image:
                 self.image.clip_draw(0, 0, 21, 21, sx, sy, 30, 30)
-        if not self.is_active and self.duration_timer <= 0:
+
+        if not self.is_active and self.explosion_timer > 0:
             if self.image:
                 self.image.clip_draw(82, 0, 61, 61, tx, ty, 60, 60)
 
