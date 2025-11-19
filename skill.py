@@ -529,6 +529,7 @@ class AssassinSkill(Skill):
 
 
 class OfficerSkill(Skill):
+    """화살 스킬 클래스"""
     image = None
 
     def __init__(self, owner):
@@ -536,20 +537,114 @@ class OfficerSkill(Skill):
         if OfficerSkill.image is None:
             OfficerSkill.image = load_image('asset/Weapon/officer_1.png')
 
-        self.cooldown = 8.0
-        self.duration = 3.0
-        self.heal_amount = 20
-        self.buff_range = 150
+        self.cooldown = 0
+        self.duration = 0.4  # 플레이어보다 빠른 속도
+        self.damage = 25
+
+        # 화살 시작 위치 (스킬 사용 시점에 고정)
+        self.start_x = 0
+        self.start_y = 0
+
+        # 화살 현재 위치
+        self.arrow_x = 0
+        self.arrow_y = 0
+
+        # 화살 방향
+        self.skill_dir_x = 1
+        self.skill_dir_y = 0
+
+        # 이동 거리
+        self.move_distance = 200
+
+        # 애니메이션 프레임 (6개, 0~5)
         self.frame = 0
-        self.center_x = 0
-        self.center_y = 0
+        self.total_frames = 6
+
+    def can_use(self):
+        """스킬이 끝날 때까지 재사용 불가"""
+        return not self.is_active
 
     def on_use(self):
-        pass
+        # 스킬 사용 시점의 방향 저장
+        self.skill_dir_x = self.owner.last_move_dir_x
+        self.skill_dir_y = self.owner.last_move_dir_y
 
+        if self.skill_dir_x == 0 and self.skill_dir_y == 0:
+            self.skill_dir_x = 1
+
+        # 시작 위치를 플레이어 위치로 고정
+        self.start_x = self.owner.x
+        self.start_y = self.owner.y
+
+        # 방향에 따라 시작 위치 오프셋
+        if abs(self.skill_dir_x) > abs(self.skill_dir_y):
+            self.start_x += self.skill_dir_x * 30
+        else:
+            self.start_y += self.skill_dir_y * 30
+
+        self.arrow_x = self.start_x
+        self.arrow_y = self.start_y
+        self.frame = 0
 
     def on_update(self):
-        pass
+        # 이동 진행도
+        progress = 1.0 - (self.duration_timer / self.duration)
+
+        # 시작 위치에서 이동 거리만큼 날아감
+        self.arrow_x = self.start_x + (self.skill_dir_x * self.move_distance * progress)
+        self.arrow_y = self.start_y + (self.skill_dir_y * self.move_distance * progress)
+
+        # 프레임 애니메이션 업데이트 (진행도에 따라 0~5 프레임)
+        self.frame = int(progress * self.total_frames)
+        if self.frame >= self.total_frames:
+            self.frame = self.total_frames - 1
+
+        # 충돌 범위 밖으로 나가면 종료
+        if self.check_out_of_bounds():
+            self.is_active = False
+            self.duration_timer = 0
+
+    def check_out_of_bounds(self):
+        """충돌 범위 밖인지 확인"""
+        try:
+            import map as game_map
+            import round1
+            from lobby import is_lobby_collision
+
+            # 로비에서는 경계 체크
+            if game_map.current_map == "Lobby":
+                if is_lobby_collision(self.arrow_x, self.arrow_y):
+                    return True
+
+            # 라운드 맵에서는 픽셀 체크
+            elif game_map.current_map == "Round_1":
+                if round1._collision_data is None:
+                    return False
+
+                scale = 10000.0 / round1._collision_width
+                img_x = int(self.arrow_x / scale)
+                img_y = int(self.arrow_y / scale)
+
+                if img_x < 0 or img_x >= round1._collision_width or img_y < 0 or img_y >= round1._collision_height:
+                    return True
+
+                pil_y = round1._collision_height - 1 - img_y
+                pixel = round1._collision_data[img_x, pil_y]
+
+                if round1._image_mode == 'RGB':
+                    r, g, b = pixel
+                elif round1._image_mode == 'RGBA':
+                    r, g, b, a = pixel
+                else:
+                    r = g = b = pixel if isinstance(pixel, int) else pixel[0]
+
+                # 검정색(벽)이면 범위 밖
+                if r < 1 and g < 1 and b < 1:
+                    return True
+
+            return False
+        except:
+            return False
 
     def on_end(self):
         pass
@@ -560,9 +655,72 @@ class OfficerSkill(Skill):
 
         cam = game_world.camera
         if cam:
-            sx, sy = cam.to_camera(self.center_x, self.center_y)
+            sx, sy = cam.to_camera(self.arrow_x, self.arrow_y)
         else:
-            sx, sy = self.center_x, self.center_y
+            sx, sy = self.arrow_x, self.arrow_y
+
+        if self.image:
+            # 방향에 따른 각도 설정
+            angle = 0
+            if abs(self.skill_dir_x) > abs(self.skill_dir_y):
+                if self.skill_dir_x > 0:
+                    angle = 0  # 오른쪽
+                else:
+                    angle = 180  # 왼쪽
+            else:
+                if self.skill_dir_y > 0:
+                    angle = 90  # 위
+                else:
+                    angle = -90  # 아래
+
+            # 화살 이미지 크기: 25x9, 6개 스프라이트
+            # 인게임 크기 4배 확대 (100x36)
+            self.image.clip_composite_draw(
+                int(self.frame) * 25, 0, 25, 9,
+                math.radians(angle), '',
+                sx, sy, 100, 36
+            )
+
+        if game_framework.show_bb:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
+
+    def get_bb(self):
+        if not self.is_active:
+            return 0, 0, 0, 0
+
+        # 방향에 따라 바운딩 박스 크기 조정 (100x36 크기)
+        if abs(self.skill_dir_x) > abs(self.skill_dir_y):
+            # 좌우 방향: 가로로 긴 화살
+            return self.arrow_x - 50, self.arrow_y - 18, self.arrow_x + 50, self.arrow_y + 18
+        else:
+            # 상하 방향: 세로로 긴 화살
+            return self.arrow_x - 18, self.arrow_y - 50, self.arrow_x + 18, self.arrow_y + 50
+
+    def handle_collision(self, group, other):
+        """몬스터와 충돌 처리"""
+        if group == 'skill:monster' and self.is_active:
+            if hasattr(other, 'hp') and getattr(other, 'alive', True):
+                other.hp -= self.damage
+                print(f"오피서 스킬 피격: 몬스터 HP={other.hp}")
+                if other.hp <= 0:
+                    other.alive = False
+                    import round1
+                    # 몬스터 카운트 감소
+                    if round1.current_room in round1.rooms:
+                        round1.rooms[round1.current_room]['num'] -= 1
+
+                    # 방 클리어 체크
+                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+
+                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
 
 def create_skill(job_name,owner):
     skill_map = {
