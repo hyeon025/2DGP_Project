@@ -2,6 +2,7 @@ from pico2d import load_image, draw_rectangle
 import game_framework
 import game_world
 import math
+from PIL import Image
 
 
 class Skill:
@@ -75,6 +76,41 @@ class AlchemistSkill(Skill):
         self.target_y = 0
         self.skill_dir = 1
         self.explosion_timer = 0
+        self.should_show_mark = True
+
+    def check_collision_at_target(self, x, y):
+        """목적지의 충돌 맵 픽셀 색상을 확인하여 검정색이면 False 반환"""
+        try:
+            import round1
+            if round1._collision_data is None:
+                return True
+
+            scale = 10000.0 / round1._collision_width
+            img_x = int(x / scale)
+            img_y = int(y / scale)
+
+            if img_x < 0 or img_x >= round1._collision_width or img_y < 0 or img_y >= round1._collision_height:
+                return False
+
+            pil_y = round1._collision_height - 1 - img_y
+            pixel = round1._collision_data[img_x, pil_y]
+
+            if round1._image_mode == 'L':
+                r = g = b = pixel
+            elif round1._image_mode == 'RGB':
+                r, g, b = pixel
+            elif round1._image_mode == 'RGBA':
+                r, g, b, a = pixel
+            else:
+                r = g = b = pixel if isinstance(pixel, int) else pixel[0]
+
+            # 검정색(0,0,0)이면 자국을 표시하지 않음
+            if r < 1 and g < 1 and b < 1:
+                return False
+
+            return True
+        except:
+            return True
 
     def on_use(self):
         self.start_x = self.owner.x
@@ -85,6 +121,9 @@ class AlchemistSkill(Skill):
         self.frame = 0
         self.explosion_timer = 0
 
+        # 목적지가 검정색인지 확인
+        self.should_show_mark = self.check_collision_at_target(self.target_x, self.target_y)
+
     def on_update(self):
         progress = 1.0 - (self.duration_timer / self.duration)
         self.frame = int(progress * 5) % 6
@@ -93,8 +132,11 @@ class AlchemistSkill(Skill):
         self.throw_y = self.start_y + math.sin(progress * math.pi) * 50
 
     def on_end(self):
-        self.explosion_timer = 0.5
-        # game_world.remove_object(self)
+        # 목적지가 검정색이 아닐 때만 폭발 자국을 표시
+        if self.should_show_mark:
+            self.explosion_timer = 0.5
+        else:
+            game_world.remove_object(self)
 
     def update(self):
         super().update()
@@ -117,7 +159,8 @@ class AlchemistSkill(Skill):
             if self.image:
                 self.image.clip_draw(0, 0, 21, 21, sx, sy, 30, 30)
 
-        if not self.is_active and self.explosion_timer > 0:
+        # 목적지가 검정색이 아닐 때만 폭발 자국을 그림
+        if not self.is_active and self.explosion_timer > 0 and self.should_show_mark:
             if self.image:
                 self.image.clip_draw(82, 0, 61, 61, tx, ty, 60, 60)
 
@@ -133,12 +176,14 @@ class AlchemistSkill(Skill):
     def get_bb(self):
         if self.is_active:
             return 0, 0, 0, 0
-        if self.explosion_timer > 0:
+        # 목적지가 검정색이 아닐 때만 충돌 박스 반환
+        if self.explosion_timer > 0 and self.should_show_mark:
             return self.target_x - 30, self.target_y - 30, self.target_x + 30, self.target_y + 30
         return 0, 0, 0, 0
 
     def handle_collision(self, group, other):
-        if group == 'skill:monster' and (not self.is_active) and self.explosion_timer > 0:
+        # 목적지가 검정색이 아닐 때만 충돌 처리
+        if group == 'skill:monster' and (not self.is_active) and self.explosion_timer > 0 and self.should_show_mark:
             if hasattr(other, 'hp') and getattr(other, 'alive', True):
                 other.hp -= self.damage
                 print(f"스킬 폭발 피격: 몬스터 HP={other.hp}")
