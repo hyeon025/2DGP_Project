@@ -74,13 +74,22 @@ class AlchemistSkill(Skill):
         self.throw_y = 0
         self.target_x = 0
         self.target_y = 0
-        self.skill_dir = 1
+        self.skill_dir_x = 1
+        self.skill_dir_y = 0
         self.explosion_timer = 0
         self.should_show_mark = True
 
     def check_collision_at_target(self, x, y):
-        """목적지의 충돌 맵 픽셀 색상을 확인하여 검정색이면 False 반환"""
         try:
+            import map as game_map
+
+            if game_map.current_map == "Lobby":
+                from lobby import is_lobby_collision
+                if is_lobby_collision(x, y):
+                    return False
+                return True
+
+
             import round1
             if round1._collision_data is None:
                 return True
@@ -104,7 +113,6 @@ class AlchemistSkill(Skill):
             else:
                 r = g = b = pixel if isinstance(pixel, int) else pixel[0]
 
-            # 검정색(0,0,0)이면 자국을 표시하지 않음
             if r < 1 and g < 1 and b < 1:
                 return False
 
@@ -115,24 +123,40 @@ class AlchemistSkill(Skill):
     def on_use(self):
         self.start_x = self.owner.x
         self.start_y = self.owner.y
-        self.skill_dir = self.owner.face_dir
-        self.target_x = self.start_x + (self.range * self.skill_dir)
-        self.target_y = self.start_y
+
+        self.skill_dir_x = self.owner.last_move_dir_x
+        self.skill_dir_y = self.owner.last_move_dir_y
+
+
+        if self.skill_dir_x == 0 and self.skill_dir_y == 0:
+            self.skill_dir_x = 1
+
+        self.target_x = self.start_x + (self.range * self.skill_dir_x)
+        self.target_y = self.start_y + (self.range * self.skill_dir_y)
         self.frame = 0
         self.explosion_timer = 0
 
-        # 목적지가 검정색인지 확인
+
         self.should_show_mark = self.check_collision_at_target(self.target_x, self.target_y)
 
     def on_update(self):
         progress = 1.0 - (self.duration_timer / self.duration)
         self.frame = int(progress * 5) % 6
 
-        self.throw_x = self.start_x + (self.range * self.skill_dir * progress)
-        self.throw_y = self.start_y + math.sin(progress * math.pi) * 50
+
+        self.throw_x = self.start_x + (self.range * self.skill_dir_x * progress)
+        self.throw_y = self.start_y + (self.range * self.skill_dir_y * progress)
+
+
+        arc_offset = math.sin(progress * math.pi) * 50
+        if abs(self.skill_dir_x) > abs(self.skill_dir_y):
+            # 좌우 이동
+            self.throw_y += arc_offset
+        else:
+            # 상하 이동
+            self.throw_x += arc_offset * self.skill_dir_x if self.skill_dir_x != 0 else arc_offset
 
     def on_end(self):
-        # 목적지가 검정색이 아닐 때만 폭발 자국을 표시
         if self.should_show_mark:
             self.explosion_timer = 0.5
         else:
@@ -159,7 +183,6 @@ class AlchemistSkill(Skill):
             if self.image:
                 self.image.clip_draw(0, 0, 21, 21, sx, sy, 30, 30)
 
-        # 목적지가 검정색이 아닐 때만 폭발 자국을 그림
         if not self.is_active and self.explosion_timer > 0 and self.should_show_mark:
             if self.image:
                 self.image.clip_draw(82, 0, 61, 61, tx, ty, 60, 60)
@@ -176,13 +199,12 @@ class AlchemistSkill(Skill):
     def get_bb(self):
         if self.is_active:
             return 0, 0, 0, 0
-        # 목적지가 검정색이 아닐 때만 충돌 박스 반환
+
         if self.explosion_timer > 0 and self.should_show_mark:
             return self.target_x - 30, self.target_y - 30, self.target_x + 30, self.target_y + 30
         return 0, 0, 0, 0
 
     def handle_collision(self, group, other):
-        # 목적지가 검정색이 아닐 때만 충돌 처리
         if group == 'skill:monster' and (not self.is_active) and self.explosion_timer > 0 and self.should_show_mark:
             if hasattr(other, 'hp') and getattr(other, 'alive', True):
                 other.hp -= self.damage

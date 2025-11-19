@@ -9,10 +9,10 @@ from monster import Monster, AngryEggMonster, EggMonster
 _background_cache = {}
 
 rooms = {
-    1: {'type': 1, 'num': 10},
-    2: {'type': 1, 'num': 14},
-    3: {'type': 3, 'num': 0},
-    4: {'type': 2, 'num': 0},
+    1: {'type': 1, 'num': 10, 'entered': False},
+    2: {'type': 1, 'num': 14, 'entered': False},
+    3: {'type': 3, 'num': 0, 'entered': False},
+    4: {'type': 2, 'num': 0, 'entered': False},
 }
 
 _collision_data = None
@@ -161,6 +161,7 @@ def round1Collision(player):
         pil_y = _collision_height - 1 - img_y
         pixel = _collision_data[img_x, pil_y]
 
+        # 픽셀 값 파싱 최적화
         if _image_mode == 'L':
             r = g = b = pixel
         elif _image_mode == 'RGB':
@@ -170,11 +171,8 @@ def round1Collision(player):
         else:
             r = g = b = pixel if isinstance(pixel, int) else pixel[0]
 
-        print('픽셀 값:', r, g, b)
-
-        # 검은색 충돌
+        # 검은색 충돌 (print 제거로 성능 향상)
         if r < 1 and g < 1 and b < 1:
-            print('벽 충돌!')
             return
 
     if can_move:
@@ -195,26 +193,27 @@ def round1Collision(player):
             else:
                 r = g = b = pixel if isinstance(pixel, int) else pixel[0]
 
+            # 방 입장 체크 (print 제거로 성능 향상)
             if r == 63 and g == 92 and b == 135:
-                print('2번방 입장!')
-                if rooms[2]['num'] > 0:
-                    change_map('asset/Map/round1_close_map.png',
-                               'asset/Map/round1_close_collision.png', 2, player)
-                    spawn_monsters(2, player)
-                else:
-                    change_map('asset/Map/round1_map.png',
-                               'asset/Map/round1_collision.png', 2, player)
+                # 2번방 입장
+                if not rooms[2]['entered']:
+                    rooms[2]['entered'] = True
+                    if rooms[2]['num'] > 0:
+                        change_map('asset/Map/round1_close_map.png',
+                                   'asset/Map/round1_close_collision.png', 2, player)
+                        spawn_monsters(2, player)
+                    else:
+                        change_map('asset/Map/round1_map.png',
+                                   'asset/Map/round1_collision.png', 2, player)
 
             elif r == 255 and g == 0 and b == 0:
-                print('1번방 입장!')
-                if rooms[1]['num'] > 0:
-                    change_map('asset/Map/round1_close_map.png',
-                               'asset/Map/round1_close_collision.png', 1, player)
-                    spawn_monsters(1, player)
-                else:
-                    change_map('asset/Map/round1_map.png',
-                               'asset/Map/round1_collision.png', 1, player)
-            elif r == 45 and g == 45 and b == 45:
-                print('3번방 입장!')
-            elif r == 46 and g == 46 and b == 46:
-                print('4번방 입장!')
+                # 1번방 입장
+                if not rooms[1]['entered']:
+                    rooms[1]['entered'] = True
+                    if rooms[1]['num'] > 0:
+                        change_map('asset/Map/round1_close_map.png',
+                                   'asset/Map/round1_close_collision.png', 1, player)
+                        spawn_monsters(1, player)
+                    else:
+                        change_map('asset/Map/round1_map.png',
+                                   'asset/Map/round1_collision.png', 1, player)

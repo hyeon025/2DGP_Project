@@ -11,3 +11,9 @@ def lobbyCollision(player):
         player.y = 40
     if (player.y >= 720):
         player.y = 720
+
+
+def is_lobby_collision(x, y):
+    if x < 30 or x > 1170 or y < 40 or y > 720:
+        return True
+    return False

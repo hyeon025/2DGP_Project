@@ -27,13 +27,23 @@ class Weapon:
         self.attack_width = 41
         self.attack_height = 55
 
+        self.attack_dir_x = 1
+        self.attack_dir_y = 0
+
     def attack(self):
         if self.cooldown_timer <= 0 and not self.is_attacking:
             self.is_attacking = True
             self.attack_timer = self.attack_duration
             self.cooldown_timer = self.cooldown
             self.frame = 0
-            print(f"공격, 데미지: {self.damage}")
+
+            self.attack_dir_x = self.own.last_move_dir_x
+            self.attack_dir_y = self.own.last_move_dir_y
+
+            if self.attack_dir_x == 0 and self.attack_dir_y == 0:
+                self.attack_dir_x = 1
+
+            print(f"공격, 데미지: {self.damage}, 방향: ({self.attack_dir_x}, {self.attack_dir_y})")
         pass
 
     def update(self):
@@ -59,9 +69,16 @@ class Weapon:
 
         cam = game_world.camera
 
-        offset_x = self.attack_range * self.own.face_dir
-        wx = self.own.x + offset_x + (15 * self.own.face_dir)
-        wy = self.own.y - 25
+        if abs(self.attack_dir_x) > abs(self.attack_dir_y):
+            # 좌우 공격
+            offset_x = self.attack_range * self.attack_dir_x
+            wx = self.own.x + offset_x + (15 * self.attack_dir_x)
+            wy = self.own.y - 25
+        else:
+            # 상하 공격
+            offset_y = self.attack_range * self.attack_dir_y
+            wx = self.own.x
+            wy = self.own.y + offset_y + (15 * self.attack_dir_y)
 
         if cam:
             sx, sy = cam.to_camera(wx, wy)
@@ -69,10 +86,17 @@ class Weapon:
             sx, sy = wx, wy
 
         if Weapon.image:
-            if self.own.face_dir == 1:
-                Weapon.image.clip_draw(self.frame * 41, 0, 41, 55, sx, sy, 41 * 1.5, 55 * 1.5)
+            if abs(self.attack_dir_x) > abs(self.attack_dir_y):
+                if self.attack_dir_x > 0:
+                    Weapon.image.clip_draw(self.frame * 41, 0, 41, 55, sx, sy, 41 * 1.5, 55 * 1.5)
+                else:
+                    Weapon.image.clip_composite_draw(self.frame * 41, 0, 41, 55, 0, 'h', sx, sy, 41 * 1.5, 55 * 1.5)
             else:
-                Weapon.image.clip_composite_draw(self.frame * 41, 0, 41, 55 ,0, 'h', sx, sy, 41 * 1.5, 55 * 1.5)
+                if self.attack_dir_y > 0:
+                    Weapon.image.clip_composite_draw(self.frame * 41, 0, 41, 55, math.radians(90), '', sx, sy, 41 * 1.5, 55 * 1.5)
+                else:
+                    Weapon.image.clip_composite_draw(self.frame * 41, 0, 41, 55, math.radians(-90), 'v', sx, sy, 41 * 1.5, 55 * 1.5)
+
         if game_framework.show_bb:
             if cam:
                 l, b, r, t = self.get_bb()
@@ -86,12 +110,21 @@ class Weapon:
         if not self.is_attacking:
             return 0, 0, 0, 0
 
-        offset_x = self.attack_range * self.own.face_dir
-        wx = self.own.x + offset_x + (15 * self.own.face_dir)
-        wy = self.own.y - 25
 
-        half_w = self.attack_width // 2
-        half_h = self.attack_height // 2
+        if abs(self.attack_dir_x) > abs(self.attack_dir_y):
+            offset_x = self.attack_range * self.attack_dir_x
+            wx = self.own.x + offset_x + (15 * self.attack_dir_x)
+            wy = self.own.y - 25
+
+            half_w = self.attack_width // 2
+            half_h = self.attack_height // 2
+        else:
+            offset_y = self.attack_range * self.attack_dir_y
+            wx = self.own.x
+            wy = self.own.y + offset_y + (15 * self.attack_dir_y)
+
+            half_w = self.attack_height // 2
+            half_h = self.attack_width // 2
 
         return wx - half_w, wy - half_h, wx + half_w, wy + half_h
 
