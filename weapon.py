@@ -24,8 +24,8 @@ class Weapon:
         self.frame = 0
 
         self.attack_range = 30
-        self.attack_width = 41 * 1.5
-        self.attack_height = 55 * 1.5
+        self.attack_width = 41
+        self.attack_height = 55
 
     def attack(self):
         if self.cooldown_timer <= 0 and not self.is_attacking:
@@ -70,9 +70,9 @@ class Weapon:
 
         if Weapon.image:
             if self.own.face_dir == 1:
-                Weapon.image.clip_draw(self.frame * 41, 0, 41, 55, sx, sy, self.attack_width, self.attack_height)
+                Weapon.image.clip_draw(self.frame * 41, 0, 41, 55, sx, sy, 41 * 1.5, 55 * 1.5)
             else:
-                Weapon.image.clip_composite_draw(self.frame * 41, 0, 41, 55 ,0, 'h', sx, sy, self.attack_width, self.attack_height)
+                Weapon.image.clip_composite_draw(self.frame * 41, 0, 41, 55 ,0, 'h', sx, sy, 41 * 1.5, 55 * 1.5)
         if game_framework.show_bb:
             if cam:
                 l, b, r, t = self.get_bb()
