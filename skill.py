@@ -211,25 +211,34 @@ class AlchemistSkill(Skill):
                 print(f"스킬 폭발 피격: 몬스터 HP={other.hp}")
                 if other.hp <= 0:
                     other.alive = False
+                    import round1
+                    if round1.current_room in round1.rooms:
+                        round1.rooms[round1.current_room]['num'] -= 1
+
+                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+
+                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
 
 
 class SwordAfterimage:
-    """검 잔상 클래스"""
-    def __init__(self, x, y, dir_x, dir_y, image):
+    def __init__(self, x, y, dir_x, dir_y, image, owner):
         self.x = x
         self.y = y
         self.dir_x = dir_x
         self.dir_y = dir_y
         self.image = image
+        self.owner = owner
 
         self.start_x = x
         self.start_y = y
-        self.move_distance = 70
+        self.move_distance = 140
         self.duration = 0.3
         self.timer = self.duration
         self.is_alive = True
+        self.damage = 30
 
-        # 방향에 따른 각도 설정
         if abs(dir_x) > abs(dir_y):
             if dir_x > 0:
                 self.angle = 0
@@ -245,15 +254,59 @@ class SwordAfterimage:
         if self.timer > 0:
             self.timer -= game_framework.frame_time
 
-            # 이동 진행도
             progress = 1.0 - (self.timer / self.duration)
 
-            # 방향으로 이동
             self.x = self.start_x + (self.dir_x * self.move_distance * progress)
             self.y = self.start_y + (self.dir_y * self.move_distance * progress)
 
+
+            if self.check_out_of_bounds():
+                self.is_alive = False
+                return
+
             if self.timer <= 0:
                 self.is_alive = False
+
+    def check_out_of_bounds(self):
+        """충돌 범위 밖인지 확인"""
+        try:
+            import map as game_map
+            import round1
+            from lobby import is_lobby_collision
+
+
+            if game_map.current_map == "Lobby":
+                if is_lobby_collision(self.x, self.y):
+                    return True
+
+
+            elif game_map.current_map == "Round_1":
+                if round1._collision_data is None:
+                    return False
+
+                scale = 10000.0 / round1._collision_width
+                img_x = int(self.x / scale)
+                img_y = int(self.y / scale)
+
+                if img_x < 0 or img_x >= round1._collision_width or img_y < 0 or img_y >= round1._collision_height:
+                    return True
+
+                pil_y = round1._collision_height - 1 - img_y
+                pixel = round1._collision_data[img_x, pil_y]
+
+                if round1._image_mode == 'RGB':
+                    r, g, b = pixel
+                elif round1._image_mode == 'RGBA':
+                    r, g, b, a = pixel
+                else:
+                    r = g = b = pixel if isinstance(pixel, int) else pixel[0]
+
+                if r < 1 and g < 1 and b < 1:
+                    return True
+
+            return False
+        except:
+            return False
 
     def draw(self):
         if not self.is_alive:
@@ -269,7 +322,7 @@ class SwordAfterimage:
             self.image.clip_composite_draw(
                 52, 0, 28, 96,
                 math.radians(self.angle), '',
-                sx, sy, 28, 96
+                sx, sy, 42, 144
             )
 
         if game_framework.show_bb:
@@ -284,8 +337,28 @@ class SwordAfterimage:
     def get_bb(self):
         if not self.is_alive:
             return 0, 0, 0, 0
-        # 잔상 이미지 크기만큼
-        return self.x - 14, self.y - 48, self.x + 14, self.y + 48
+
+        if abs(self.dir_x) > abs(self.dir_y):
+            return self.x - 21, self.y - 72, self.x + 21, self.y + 72
+        else:
+            return self.x - 72, self.y - 21, self.x + 72, self.y + 21
+
+    def handle_collision(self, group, other):
+        if group == 'afterimage:monster' and self.is_alive:
+            if hasattr(other, 'hp') and getattr(other, 'alive', True):
+                other.hp -= self.damage
+                print(f"잔상 피격: 몬스터 HP={other.hp}")
+                if other.hp <= 0:
+                    other.alive = False
+                    import round1
+                    if round1.current_room in round1.rooms:
+                        round1.rooms[round1.current_room]['num'] -= 1
+
+                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+
+                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
 
 
 class AssassinSkill(Skill):
@@ -307,7 +380,6 @@ class AssassinSkill(Skill):
         self.afterimage = None  # 잔상
 
     def can_use(self):
-        """잔상이 사라졌는지 확인"""
         if self.afterimage and self.afterimage.is_alive:
             return False
         return True
@@ -318,13 +390,6 @@ class AssassinSkill(Skill):
 
         if self.skill_dir_x == 0 and self.skill_dir_y == 0:
             self.skill_dir_x = 1
-
-    def on_update(self):
-        progress = 1.0 - (self.duration_timer / self.duration)
-
-        self.swing_angle = -90 + (progress * 180)
-
-    def on_end(self):
 
         afterimage_x = self.owner.x
         afterimage_y = self.owner.y
@@ -337,27 +402,38 @@ class AssassinSkill(Skill):
         self.afterimage = SwordAfterimage(
             afterimage_x, afterimage_y,
             self.skill_dir_x, self.skill_dir_y,
-            AssassinSkill.image
+            AssassinSkill.image,
+            self.owner
         )
+
+        game_world.add_object(self.afterimage, 2)
+        for obj in list(game_world.world[3]):
+            game_world.add_collision_pair('afterimage:monster', self.afterimage, obj)
+
+    def on_update(self):
+        progress = 1.0 - (self.duration_timer / self.duration)
+
+        self.swing_angle = -90 + (progress * 180)
+
+    def on_end(self):
+        pass
 
     def update(self):
         super().update()
 
-
         if self.afterimage:
-            self.afterimage.update()
+            if not self.afterimage.is_alive and self.afterimage in game_world.world[2]:
+                game_world.remove_object(self.afterimage)
 
     def draw(self):
-        if self.afterimage:
-            self.afterimage.draw()
 
         if not self.is_active:
             return
 
         cam = game_world.camera
 
-        sword_width = 70
-        sword_height = 70
+        sword_width = 50
+        sword_height = 50
 
         base_angle = 0
         flip_mode = ''
@@ -424,7 +500,24 @@ class AssassinSkill(Skill):
         if not self.is_active:
             return 0, 0, 0, 0
 
-        return self.owner.x - 35, self.owner.y - 35, self.owner.x + 35, self.owner.y + 35
+        offset_x = 0
+        offset_y = 0
+
+        if abs(self.skill_dir_x) > abs(self.skill_dir_y):
+            if self.skill_dir_x > 0:
+                offset_x = 35
+            else:
+                offset_x = -35
+        else:
+            if self.skill_dir_y > 0:
+                offset_y = 35
+            else:
+                offset_y = -35
+
+        center_x = self.owner.x + offset_x
+        center_y = self.owner.y + offset_y
+
+        return center_x - 25, center_y - 25, center_x + 25, center_y + 25
 
     def handle_collision(self, group, other):
         if group == 'skill:monster' and self.is_active:
