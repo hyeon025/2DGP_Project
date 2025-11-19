@@ -103,8 +103,8 @@ class Walk:
         if self.player.weapon:
             self.player.weapon.draw()
 
-        # if self.player.skill:
-        #     self.player.skill.draw()
+        if self.player.skill:
+            self.player.skill.draw()
 
     def update_key_and_dir(self, e):
         # 키 상태 업데이트
@@ -194,8 +194,8 @@ class Idle:
         if self.player.weapon:
             self.player.weapon.draw()
 
-        # if self.player.skill:
-        #     self.player.skill.draw()
+        if self.player.skill:
+            self.player.skill.draw()
 
     def update_key_and_dir(self, e):
         if d_up(e):
@@ -210,7 +210,6 @@ class Idle:
         self.player.dir_x = 0
         self.player.dir_y = 0
 
-        #키 상태 체크
         if self.player.keys['d']:
             self.player.dir_x += 1
         if self.player.keys['a']:
@@ -235,7 +234,6 @@ class Player:
         self.frame = 0
         self.colliding_particle = None
 
-        # 마지막 이동 방향 추적 (공격/스킬 방향 결정용)
         self.last_move_dir_x = 1
         self.last_move_dir_y = 0
 
@@ -297,14 +295,19 @@ class Player:
             if self.skill.is_active:
                 print("스킬이 이미 사용 중입니다.")
                 return
-            if self.skill in game_world.world[2]:
-                print("스킬 객체가 이미 월드에 있음")
+
+            if hasattr(self.skill, 'can_use') and not self.skill.can_use():
+                print("잔상이 아직 사라지지 않았습니다.")
                 return
-            success = self.skill.use()
-            if success:
-                for obj in list(game_world.world[3]):
-                    game_world.add_collision_pair('skill:monster', self.skill, obj)
-                game_world.add_object(self.skill, 2)
+
+            if self.skill not in game_world.world[2]:
+                success = self.skill.use()
+                if success:
+                    for obj in list(game_world.world[3]):
+                        game_world.add_collision_pair('skill:monster', self.skill, obj)
+                    game_world.add_object(self.skill, 2)
+            else:
+                self.skill.use()
 
     def try_change_job(self):
         if game_map.current_map != "Lobby" or not self.colliding_particle:
@@ -318,7 +321,6 @@ class Player:
             px = self.colliding_particle.x
             py = self.colliding_particle.y
 
-            # 라운드 시작 파티클
             if px == 600 and py == 680:
                 print("1라운드 시작!")
                 game_map.current_map = "Round_1"

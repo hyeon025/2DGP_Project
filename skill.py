@@ -213,6 +213,81 @@ class AlchemistSkill(Skill):
                     other.alive = False
 
 
+class SwordAfterimage:
+    """검 잔상 클래스"""
+    def __init__(self, x, y, dir_x, dir_y, image):
+        self.x = x
+        self.y = y
+        self.dir_x = dir_x
+        self.dir_y = dir_y
+        self.image = image
+
+        self.start_x = x
+        self.start_y = y
+        self.move_distance = 70
+        self.duration = 0.3
+        self.timer = self.duration
+        self.is_alive = True
+
+        # 방향에 따른 각도 설정
+        if abs(dir_x) > abs(dir_y):
+            if dir_x > 0:
+                self.angle = 0
+            else:
+                self.angle = 180
+        else:
+            if dir_y > 0:
+                self.angle = 90
+            else:
+                self.angle = -90
+
+    def update(self):
+        if self.timer > 0:
+            self.timer -= game_framework.frame_time
+
+            # 이동 진행도
+            progress = 1.0 - (self.timer / self.duration)
+
+            # 방향으로 이동
+            self.x = self.start_x + (self.dir_x * self.move_distance * progress)
+            self.y = self.start_y + (self.dir_y * self.move_distance * progress)
+
+            if self.timer <= 0:
+                self.is_alive = False
+
+    def draw(self):
+        if not self.is_alive:
+            return
+
+        cam = game_world.camera
+        if cam:
+            sx, sy = cam.to_camera(self.x, self.y)
+        else:
+            sx, sy = self.x, self.y
+
+        if self.image:
+            self.image.clip_composite_draw(
+                52, 0, 28, 96,
+                math.radians(self.angle), '',
+                sx, sy, 28, 96
+            )
+
+        if game_framework.show_bb:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
+
+    def get_bb(self):
+        if not self.is_alive:
+            return 0, 0, 0, 0
+        # 잔상 이미지 크기만큼
+        return self.x - 14, self.y - 48, self.x + 14, self.y + 48
+
+
 class AssassinSkill(Skill):
     image = None
 
@@ -222,32 +297,142 @@ class AssassinSkill(Skill):
             AssassinSkill.image = load_image('asset/Weapon/assassin_1.png')
 
         self.cooldown = 0.2
-        self.duration = 0.3
-        self.dash_distance = 300
-        self.dash_speed = 0
-        self.start_x = 0
-        self.start_y = 0
-        self.target_x = 0
-        self.target_y = 0
+        self.duration = 0.2
+        self.damage = 30
+
+        self.skill_dir_x = 1
+        self.skill_dir_y = 0
+
+        self.swing_angle = 0
+        self.afterimage = None  # 잔상
+
+    def can_use(self):
+        """잔상이 사라졌는지 확인"""
+        if self.afterimage and self.afterimage.is_alive:
+            return False
+        return True
 
     def on_use(self):
-        pass
+        self.skill_dir_x = self.owner.last_move_dir_x
+        self.skill_dir_y = self.owner.last_move_dir_y
+
+        if self.skill_dir_x == 0 and self.skill_dir_y == 0:
+            self.skill_dir_x = 1
 
     def on_update(self):
-        pass
+        progress = 1.0 - (self.duration_timer / self.duration)
+
+        self.swing_angle = -90 + (progress * 180)
 
     def on_end(self):
-        pass
+
+        afterimage_x = self.owner.x
+        afterimage_y = self.owner.y
+
+        if abs(self.skill_dir_x) > abs(self.skill_dir_y):
+            afterimage_x += self.skill_dir_x * 30
+        else:
+            afterimage_y += self.skill_dir_y * 30
+
+        self.afterimage = SwordAfterimage(
+            afterimage_x, afterimage_y,
+            self.skill_dir_x, self.skill_dir_y,
+            AssassinSkill.image
+        )
+
+    def update(self):
+        super().update()
+
+
+        if self.afterimage:
+            self.afterimage.update()
 
     def draw(self):
+        if self.afterimage:
+            self.afterimage.draw()
+
         if not self.is_active:
             return
 
         cam = game_world.camera
-        if cam:
-            sx, sy = cam.to_camera(self.owner.x, self.owner.y)
+
+        sword_width = 70
+        sword_height = 70
+
+        base_angle = 0
+        flip_mode = ''
+        offset_x = 0
+        offset_y = 0
+
+        if abs(self.skill_dir_x) > abs(self.skill_dir_y):
+            # 좌우 방향
+            if self.skill_dir_x > 0:
+                # 오른쪽
+                base_angle = 0
+                flip_mode = ''
+                offset_x = 20
+            else:
+                base_angle = 180
+                flip_mode = ''
+                offset_x = -20
         else:
-            sx, sy = self.owner.x, self.owner.y
+            # 상하 방향
+            if self.skill_dir_y > 0:
+                base_angle = 90
+                flip_mode = ''
+                offset_y = 20
+            else:
+                base_angle = -90
+                flip_mode = ''
+                offset_y = -20
+
+        px = self.owner.x + offset_x
+        py = self.owner.y + offset_y
+
+        final_angle = base_angle + self.swing_angle
+
+        if cam:
+            sx, sy = cam.to_camera(px, py)
+        else:
+            sx, sy = px, py
+
+        if self.image:
+            angle_rad = math.radians(final_angle)
+
+            offset_distance_x = sword_width / 2
+            offset_distance_y = sword_height / 2
+
+            draw_x = sx + offset_distance_x * math.cos(angle_rad) - offset_distance_y * math.sin(angle_rad)
+            draw_y = sy + offset_distance_x * math.sin(angle_rad) + offset_distance_y * math.cos(angle_rad)
+
+            self.image.clip_composite_draw(
+                0, 58, 38, 38,
+                angle_rad, flip_mode,
+                draw_x, draw_y, sword_width, sword_height
+            )
+
+        if game_framework.show_bb:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
+
+    def get_bb(self):
+        if not self.is_active:
+            return 0, 0, 0, 0
+
+        return self.owner.x - 35, self.owner.y - 35, self.owner.x + 35, self.owner.y + 35
+
+    def handle_collision(self, group, other):
+        if group == 'skill:monster' and self.is_active:
+            if hasattr(other, 'hp') and getattr(other, 'alive', True):
+                other.hp -= self.damage
+                print(f"어쌔신 스킬 피격: 몬스터 HP={other.hp}")
+                if other.hp <= 0:
+                    other.alive = False
 
 
 class OfficerSkill(Skill):
