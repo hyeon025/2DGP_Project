@@ -47,8 +47,16 @@ def clear():
 
 
 def collide(a, b):
-    left_a, bottom_a, right_a, top_a = a.get_bb()
-    left_b, bottom_b, right_b, top_b = b.get_bb()
+    if a is None or b is None:
+        return False
+    if not hasattr(a, 'get_bb') or not hasattr(b, 'get_bb'):
+        return False
+
+    try:
+        left_a, bottom_a, right_a, top_a = a.get_bb()
+        left_b, bottom_b, right_b, top_b = b.get_bb()
+    except Exception:
+        return False
 
     if left_a > right_b : return False
     if right_a < left_b : return False

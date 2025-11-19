@@ -131,15 +131,17 @@ class AlchemistSkill(Skill):
                 draw_rectangle(*self.get_bb())
 
     def get_bb(self):
-        if not self.is_active:
+        if self.is_active:
             return 0, 0, 0, 0
-        return self.throw_x - 20, self.throw_y - 20, self.throw_x + 20, self.throw_y + 20
+        if self.explosion_timer > 0:
+            return self.target_x - 30, self.target_y - 30, self.target_x + 30, self.target_y + 30
+        return 0, 0, 0, 0
 
     def handle_collision(self, group, other):
-        if group == 'skill:monster' and self.is_active:
-            if hasattr(other, 'hp') and other.alive:
+        if group == 'skill:monster' and (not self.is_active) and self.explosion_timer > 0:
+            if hasattr(other, 'hp') and getattr(other, 'alive', True):
                 other.hp -= self.damage
-                print(f"피격 성공, 몬스터 HP: {other.hp}")
+                print(f"스킬 폭발 피격: 몬스터 HP={other.hp}")
                 if other.hp <= 0:
                     other.alive = False
 
