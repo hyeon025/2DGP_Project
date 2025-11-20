@@ -21,7 +21,7 @@ def init():
     game_world.add_object(map_obj,0)
 
     job = Job()
-    game_world.add_object(job,3)
+    game_world.add_object(job,4)
 
     player = Player(current_job)
     game_world.add_object(player,4)

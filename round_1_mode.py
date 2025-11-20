@@ -26,7 +26,7 @@ def init():
     player.state_machine.current_state = player.IDLE
     player.IDLE.enter(('STOP', 0))
 
-    game_world.add_object(player, 3)
+    game_world.add_object(player, 4)
 
     if player.weapon:
         game_world.add_collision_pair('weapon:monster', player.weapon, None)
