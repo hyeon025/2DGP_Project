@@ -211,6 +211,7 @@ class AlchemistSkill(Skill):
                 print(f"스킬 폭발 피격: 몬스터 HP={other.hp}")
                 if other.hp <= 0:
                     other.alive = False
+                    game_world.move_object(other, 2)
                     import round1
                     if round1.current_room in round1.rooms:
                         round1.rooms[round1.current_room]['num'] -= 1
@@ -350,6 +351,7 @@ class SwordAfterimage:
                 print(f"잔상 피격: 몬스터 HP={other.hp}")
                 if other.hp <= 0:
                     other.alive = False
+                    game_world.move_object(other, 2)
                     import round1
                     if round1.current_room in round1.rooms:
                         round1.rooms[round1.current_room]['num'] -= 1
@@ -526,6 +528,7 @@ class AssassinSkill(Skill):
                 print(f"어쌔신 스킬 피격: 몬스터 HP={other.hp}")
                 if other.hp <= 0:
                     other.alive = False
+                    game_world.move_object(other, 2)
 
 
 class OfficerSkill(Skill):
@@ -710,6 +713,7 @@ class OfficerSkill(Skill):
                 print(f"오피서 스킬 피격: 몬스터 HP={other.hp}")
                 if other.hp <= 0:
                     other.alive = False
+                    game_world.move_object(other, 2)
                     import round1
                     # 몬스터 카운트 감소
                     if round1.current_room in round1.rooms:

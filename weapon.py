@@ -135,6 +135,7 @@ class Weapon:
                 print(f"몬스터 공격, 몬스터 남은 HP: {other.hp}")
                 if other.hp <= 0:
                     other.alive = False
+                    game_world.move_object(other, 2)
                     game_world.collision_pairs['weapon:monster'][1].remove(other)
                     round1.rooms[round1.current_room]['num'] -= 1
 

@@ -39,6 +39,15 @@ def remove_object(o):
     raise ValueError('Cannot delete non existing object')
 
 
+def move_object(o, new_depth):
+    for layer in world:
+        if o in layer:
+            layer.remove(o)
+            world[new_depth].append(o)
+            return
+    raise ValueError('Cannot move non existing object')
+
+
 def clear():
     global world
 
