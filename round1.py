@@ -12,7 +12,7 @@ rooms = {
     1: {'type': 1, 'num': 10, 'entered': False},
     2: {'type': 1, 'num': 14, 'entered': False},
     3: {'type': 3, 'num': 0, 'entered': False},
-    4: {'type': 2, 'num': 0, 'entered': False},
+    4: {'type': 2, 'num': 1, 'entered': False},
 }
 
 _collision_data = None
@@ -161,7 +161,6 @@ def round1Collision(player):
         pil_y = _collision_height - 1 - img_y
         pixel = _collision_data[img_x, pil_y]
 
-        # 픽셀 값 파싱 최적화
         if _image_mode == 'L':
             r = g = b = pixel
         elif _image_mode == 'RGB':
@@ -171,7 +170,6 @@ def round1Collision(player):
         else:
             r = g = b = pixel if isinstance(pixel, int) else pixel[0]
 
-        # 검은색 충돌 (print 제거로 성능 향상)
         if r < 1 and g < 1 and b < 1:
             return
 
@@ -193,7 +191,6 @@ def round1Collision(player):
             else:
                 r = g = b = pixel if isinstance(pixel, int) else pixel[0]
 
-            # 방 입장 체크 (print 제거로 성능 향상)
             if r == 63 and g == 92 and b == 135:
                 # 2번방 입장
                 if not rooms[2]['entered']:
@@ -217,3 +214,20 @@ def round1Collision(player):
                     else:
                         change_map('asset/Map/round1_map.png',
                                    'asset/Map/round1_collision.png', 1, player)
+
+            elif r == 0 and g == 0 and b == 255:
+                #4번방 입장
+                if not rooms[4]['entered']:
+                    rooms[4]['entered'] = True
+                    if rooms[4]['num'] > 0:
+                        change_map('asset/Map/round1_close_map.png',
+                                   'asset/Map/round1_close_collision.png', 4, player)
+                        spawn_monsters(4, player)
+                    else:
+                        change_map('asset/Map/round1_map.png',
+                               'asset/Map/round1_collision.png', 4, player)
+
+
+
+
+
