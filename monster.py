@@ -70,7 +70,7 @@ class Monster:
                 self.image.clip_draw(0, 24, 24, 24, sx, sy, 40, 40)
             else:
                 self.image.clip_composite_draw(0, 24, 24, 24, 0,'h',sx, sy, 40, 40)
-        if game_framework.show_bb:
+        if game_framework.show_bb and self.alive:
             if cam:
                 l, b, r, t = self.get_bb()
                 sl, sb = cam.to_camera(l, b)
@@ -217,7 +217,7 @@ class Boss1(Monster):
             else:
                 Boss1.walk_image.clip_composite_draw(0, 0, 128, 150, 0, 'h', sx, sy, 256, 300)
 
-        if game_framework.show_bb:
+        if game_framework.show_bb and self.alive:
             if cam:
                 l, b, r, t = self.get_bb()
                 sl, sb = cam.to_camera(l, b)

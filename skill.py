@@ -529,6 +529,17 @@ class AssassinSkill(Skill):
                 if other.hp <= 0:
                     other.alive = False
                     game_world.move_object(other, 2)
+                    import round1
+                    # 몬스터 카운트 감소
+                    if round1.current_room in round1.rooms:
+                        round1.rooms[round1.current_room]['num'] -= 1
+
+                    # 방 클리어 체크
+                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+
+                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
 
 
 class OfficerSkill(Skill):
