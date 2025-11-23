@@ -153,9 +153,14 @@ class Boss1(Monster):
             elif dx < 0:
                 self.face_dir = -1
 
-            if dist <= self.attack_range and self.attack_timer <= 0:
+            # attack 중일 때는 상태 변경 안 함 (attack_timer가 남아있으면 attack 지속)
+            if self.state == 'attack' and self.attack_timer > 0:
+                self.dir_x = 0
+                self.dir_y = 0
+            elif dist <= self.attack_range and self.attack_timer <= 0:
                 self.state = 'attack'
                 self.attack_timer = self.attack_cooldown
+                self.frame = 0  # attack 시작 시 프레임 초기화
                 self.dir_x = 0
                 self.dir_y = 0
             elif dist <= self.detection_range:
