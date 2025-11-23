@@ -4,7 +4,7 @@ from pico2d import load_image, delay
 from PIL import Image
 import game_framework
 import game_world
-from monster import Monster, AngryEggMonster, EggMonster
+from monster import Monster, AngryEggMonster, EggMonster, Boss1
 
 _background_cache = {}
 
@@ -58,9 +58,10 @@ def load_collision_map(map_path):
 def spawn_monsters(room_num, player):
     global monsters
 
-    # for monster in monsters:
-    #     game_world.remove_object(monster)
-    # monsters.clear()
+    for monster in monsters:
+        game_world.remove_object(monster)
+    monsters.clear()
+    print(f"Cleared all previous monsters")
 
     if rooms[room_num]['type'] == 0 or rooms[room_num]['num'] == 0:
         return
@@ -78,7 +79,25 @@ def spawn_monsters(room_num, player):
         base_x = 1960 * 2
         base_y = 3186 * 2
 
+    elif room_num == 4:
+        print(f"Boss1 spawning at room 4")
+        base_x = player.x + 150
+        base_y = player.y
 
+        boss = Boss1(base_x, base_y, player)
+        print(f"Boss1 created at ({base_x}, {base_y}), Player at ({player.x}, {player.y})")
+        monsters.append(boss)
+        game_world.add_object(boss, 3)
+        game_world.add_collision_pair('player:monster', player, boss)
+
+        if player.weapon:
+            game_world.add_collision_pair('weapon:monster', player.weapon, boss)
+
+        if player.skill:
+            game_world.add_collision_pair('skill:monster', player.skill, boss)
+
+        print(f"Boss1 spawn complete. Total monsters: {len(monsters)}")
+        return
 
     for monster_type, count in current_monster_counts.items():
         for i in range(count):
@@ -217,13 +236,17 @@ def round1Collision(player):
 
             elif r == 0 and g == 0 and b == 255:
                 #4번방 입장
+                print(f"Blue pixel detected - Room 4 entrance")
                 if not rooms[4]['entered']:
+                    print(f"Room 4 first entry")
                     rooms[4]['entered'] = True
                     if rooms[4]['num'] > 0:
+                        print(f"Room 4 has monsters, closing map")
                         change_map('asset/Map/round1_close_map.png',
                                    'asset/Map/round1_close_collision.png', 4, player)
                         spawn_monsters(4, player)
                     else:
+                        print(f"Room 4 has no monsters")
                         change_map('asset/Map/round1_map.png',
                                'asset/Map/round1_collision.png', 4, player)
 
