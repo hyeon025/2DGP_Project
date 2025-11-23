@@ -130,18 +130,29 @@ class Boss1(Monster):
         self.attack_range = 75
         self.detection_range = 150
         self.attack_cooldown = 2.0
-        self.attack_timer = 0
+        self.post_attack_cooldown = 0
         self.state = 'idle'
+        self.frame_speed = 0.5
+        self.attack_finished = False
 
     def update(self):
         if not self.alive:
             return
 
         max_frames = self.sprite_info[self.state]['frames']
-        self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % max_frames
 
-        if self.attack_timer > 0:
-            self.attack_timer -= game_framework.frame_time
+        if self.state == 'attack':
+            prev_frame = int(self.frame)
+            self.frame = self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time * self.frame_speed
+
+            if self.frame >= max_frames:
+                self.frame = max_frames - 1
+                self.attack_finished = True
+        else:
+            self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time * self.frame_speed) % max_frames
+
+        if self.post_attack_cooldown > 0:
+            self.post_attack_cooldown -= game_framework.frame_time
 
         if self.target is not None:
             dx = self.target.x - self.x
@@ -153,14 +164,20 @@ class Boss1(Monster):
             elif dx < 0:
                 self.face_dir = -1
 
-            # attack 중일 때는 상태 변경 안 함 (attack_timer가 남아있으면 attack 지속)
-            if self.state == 'attack' and self.attack_timer > 0:
+            if self.attack_finished and self.post_attack_cooldown > 0:
+                self.state = 'idle'
                 self.dir_x = 0
                 self.dir_y = 0
-            elif dist <= self.attack_range and self.attack_timer <= 0:
+
+            elif self.state == 'attack' and not self.attack_finished:
+                self.dir_x = 0
+                self.dir_y = 0
+
+            elif dist <= self.attack_range and self.post_attack_cooldown <= 0:
                 self.state = 'attack'
-                self.attack_timer = self.attack_cooldown
-                self.frame = 0  # attack 시작 시 프레임 초기화
+                self.attack_finished = False
+                self.post_attack_cooldown = self.attack_cooldown
+                self.frame = 0
                 self.dir_x = 0
                 self.dir_y = 0
             elif dist <= self.detection_range:
