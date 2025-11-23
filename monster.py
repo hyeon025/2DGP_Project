@@ -127,9 +127,9 @@ class Boss1(Monster):
         }
 
         self.speed_factor = 0.8
-        self.attack_range = 75
-        self.detection_range = 150
-        self.attack_cooldown = 2.0
+        self.attack_range = 100
+        self.detection_range = 200
+        self.attack_cooldown = 1.0
         self.post_attack_cooldown = 0
         self.state = 'idle'
         self.frame_speed = 0.5
@@ -147,7 +147,10 @@ class Boss1(Monster):
 
             if self.frame >= max_frames:
                 self.frame = max_frames - 1
-                self.attack_finished = True
+                if not self.attack_finished:
+                    self.attack_finished = True
+                    self.post_attack_cooldown = self.attack_cooldown
+                    self.state = 'idle'
         else:
             self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time * self.frame_speed) % max_frames
 
@@ -164,19 +167,18 @@ class Boss1(Monster):
             elif dx < 0:
                 self.face_dir = -1
 
-            if self.attack_finished and self.post_attack_cooldown > 0:
+            if self.state == 'attack' and not self.attack_finished:
+                self.dir_x = 0
+                self.dir_y = 0
+
+            elif self.post_attack_cooldown > 0:
                 self.state = 'idle'
                 self.dir_x = 0
                 self.dir_y = 0
-
-            elif self.state == 'attack' and not self.attack_finished:
-                self.dir_x = 0
-                self.dir_y = 0
-
-            elif dist <= self.attack_range and self.post_attack_cooldown <= 0:
+            # attack 가능 (쿨타임 끝남)
+            elif dist <= self.attack_range:
                 self.state = 'attack'
                 self.attack_finished = False
-                self.post_attack_cooldown = self.attack_cooldown
                 self.frame = 0
                 self.dir_x = 0
                 self.dir_y = 0
