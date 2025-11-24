@@ -30,12 +30,15 @@ class Weapon:
         self.attack_dir_x = 1
         self.attack_dir_y = 0
 
+        self.hit_monsters = set()
+
     def attack(self):
         if self.cooldown_timer <= 0 and not self.is_attacking:
             self.is_attacking = True
             self.attack_timer = self.attack_duration
             self.cooldown_timer = self.cooldown
             self.frame = 0
+            self.hit_monsters.clear()
 
             self.attack_dir_x = self.own.last_move_dir_x
             self.attack_dir_y = self.own.last_move_dir_y
@@ -130,7 +133,8 @@ class Weapon:
 
     def handle_collision(self, group, other):
         if group == 'weapon:monster' and self.is_attacking:
-            if hasattr(other, 'hp'):
+            if hasattr(other, 'hp') and other not in self.hit_monsters:
+                self.hit_monsters.add(other)
                 other.hp -= self.damage
                 print(f"몬스터 공격, 몬스터 남은 HP: {other.hp}")
                 if other.hp <= 0:
