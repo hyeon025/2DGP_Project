@@ -242,12 +242,21 @@ class Boss1(Monster):
                 sl, sb = cam.to_camera(l, b)
                 sr, st = cam.to_camera(r, t)
                 draw_rectangle(sl, sb, sr, st)
+
+                l2, b2, r2, t2 = self.get_hit_bb()
+                sl2, sb2 = cam.to_camera(l2, b2)
+                sr2, st2 = cam.to_camera(r2, t2)
+                draw_rectangle(sl2, sb2, sr2, st2)
             else:
                 draw_rectangle(*self.get_bb())
+                draw_rectangle(*self.get_hit_bb())
 
-    def get_bb(self):
+    def get_bb(self): #몬스터가 플레이어 공격 시 바운딩박스
         if self.state == 'attack' and 8 <= int(self.frame) <= 11:
             offset = self.face_dir * 80
             return self.x - self.size + offset + 50, self.y - self.size - 50, self.x + self.size + offset - 50, self.y + self.size - 50
         else:
             return self.x, self.y, self.x, self.y
+
+    def get_hit_bb(self): #플레이어가 몬스터 공격 시 바운딩박스
+        return self.x - 60, self.y - 150, self.x + 60, self.y + 20
