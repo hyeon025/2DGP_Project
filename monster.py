@@ -114,7 +114,7 @@ class Boss1(Monster):
     attack_image = None
 
     def __init__(self, x, y, target=None):
-        super().__init__(x, y, hp=500, size=50, target=target)
+        super().__init__(x, y, hp=500, size=100, target=target)
         if Boss1.walk_image is None:
             Boss1.walk_image = load_image('asset/Monster/boss1_walk.png')
             Boss1.idle_image = load_image('asset/Monster/boss1_idle.png')
@@ -175,7 +175,7 @@ class Boss1(Monster):
                 self.state = 'idle'
                 self.dir_x = 0
                 self.dir_y = 0
-            # attack 가능 (쿨타임 끝남)
+
             elif dist <= self.attack_range:
                 self.state = 'attack'
                 self.attack_finished = False
@@ -244,3 +244,10 @@ class Boss1(Monster):
                 draw_rectangle(sl, sb, sr, st)
             else:
                 draw_rectangle(*self.get_bb())
+
+    def get_bb(self):
+        if self.state == 'attack' and 8 <= int(self.frame) <= 11:
+            offset = self.face_dir * 80
+            return self.x - self.size + offset + 50, self.y - self.size - 50, self.x + self.size + offset - 50, self.y + self.size - 50
+        else:
+            return self.x, self.y, self.x, self.y
