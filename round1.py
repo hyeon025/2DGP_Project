@@ -77,7 +77,7 @@ def spawn_monsters(room_num, player):
     elif room_num == 2:
         current_monster_counts = {1: 10, 2: 4}
         base_x = 1960 * 2
-        base_y = 3186 * 2
+        base_y = 3140 * 2
 
     elif room_num == 4:
         print(f"Boss1 spawning at room 4")
