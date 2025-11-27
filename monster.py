@@ -1,5 +1,7 @@
 from pico2d import load_image, draw_rectangle, draw_circle
+from PIL import Image
 import math
+import random
 import game_framework
 import game_world
 from behavior_tree import BehaviorTree, Action, Sequence, Condition, Selector
@@ -14,6 +16,65 @@ TIME_PER_ACTION = 0.5
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 FRAMES_PER_ACTION = 8
 
+_collision_data = None
+_collision_width = 0
+_collision_height = 0
+_image_mode = None
+
+def load_collision_map():
+    global _collision_data, _collision_width, _collision_height, _image_mode
+
+    if _collision_data is None:
+        img = Image.open('asset/Map/round1_close_collision.png')
+        _collision_data = img.load()
+        _collision_width = img.width
+        _collision_height = img.height
+        _image_mode = img.mode
+
+def is_valid_position(x, y, margin_meters=1):
+    global _collision_data, _collision_width, _collision_height, _image_mode
+
+    load_collision_map()
+
+    scale = 10000.0 / _collision_width
+    margin_pixels = int(PIXEL_PER_METER * margin_meters)
+
+    check_points = [
+        (x, y),
+        (x + margin_pixels, y),
+        (x - margin_pixels, y),
+        (x, y + margin_pixels),
+        (x, y - margin_pixels),
+        (x + margin_pixels, y + margin_pixels),
+        (x - margin_pixels, y + margin_pixels),
+        (x + margin_pixels, y - margin_pixels),
+        (x - margin_pixels, y - margin_pixels),
+    ]
+
+    for px, py in check_points:
+        img_x = int(px / scale)
+        img_y = int(py / scale)
+
+        if img_x < 0 or img_x >= _collision_width or img_y < 0 or img_y >= _collision_height:
+            return False
+
+        pil_y = _collision_height - 1 - img_y
+        pixel = _collision_data[img_x, pil_y]
+
+        if _image_mode == 'L':
+            r = g = b = pixel
+        elif _image_mode == 'RGB':
+            r, g, b = pixel
+        elif _image_mode == 'RGBA':
+            r, g, b, a = pixel
+        else:
+            r = g = b = pixel if isinstance(pixel, int) else pixel[0]
+
+        if r < 1 and g < 1 and b < 1:
+            return False
+
+    return True
+
 class Monster:
     image = None
     def __init__(self,x,y,hp,size,target = None):
@@ -27,6 +88,8 @@ class Monster:
         self.target = target
         self.alive = True
         self.size = size
+        self.random_target_x = x
+        self.random_target_y = y
         self.bt = self.build_behavior_tree()
 
     def update(self):
@@ -61,9 +124,14 @@ class Monster:
                 sl, sb = cam.to_camera(l, b)
                 sr, st = cam.to_camera(r, t)
                 draw_rectangle(sl, sb, sr, st)
+
+                if self.target:
+                    tx, ty = cam.to_camera(self.target.x, self.target.y)
+                    draw_circle(int(tx), int(ty), int(PIXEL_PER_METER * 7), 255, 255, 0)
             else:
                 draw_rectangle(*self.get_bb())
-                draw_circle(self.x, self.y, int(PIXEL_PER_METER * 7), 255, 255, 0)
+                if self.target:
+                    draw_circle(int(self.target.x), int(self.target.y), int(PIXEL_PER_METER * 7), 255, 255, 0)
 
     def handle_collision(self, group, other):
         pass
@@ -114,15 +182,63 @@ class Monster:
         self.dir_y = 0
         return BehaviorTree.SUCCESS
 
+    def set_random_target(self):
+        TWO_METERS = int(PIXEL_PER_METER * 2)
+        MAX_ATTEMPTS = 20
+
+        for _ in range(MAX_ATTEMPTS):
+            offset_x = random.randint(-TWO_METERS, TWO_METERS)
+            offset_y = random.randint(-TWO_METERS, TWO_METERS)
+
+            candidate_x = self.x + offset_x
+            candidate_y = self.y + offset_y
+
+            if is_valid_position(candidate_x, candidate_y, margin_meters=1):
+                self.random_target_x = candidate_x
+                self.random_target_y = candidate_y
+                return BehaviorTree.SUCCESS
+
+        self.random_target_x = self.x
+        self.random_target_y = self.y
+        return BehaviorTree.SUCCESS
+
+    def move_to_random_position(self):
+        dx = self.random_target_x - self.x
+        dy = self.random_target_y - self.y
+        dist = math.hypot(dx, dy)
+
+        if dist > 10:
+            nx = dx / dist
+            ny = dy / dist
+            self.dir_x = nx
+            self.dir_y = ny
+            self.x += self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+            self.y += self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+
+            if self.dir_x > 0:
+                self.face_dir = 1
+            elif self.dir_x < 0:
+                self.face_dir = -1
+
+            return BehaviorTree.RUNNING
+        else:
+            self.dir_x = 0
+            self.dir_y = 0
+            return BehaviorTree.SUCCESS
+
     def build_behavior_tree(self):
 
         c_near = Condition('가까이 있는가?', self.is_target_nearby, 7)
         a_move = Action('타겟으로 이동', self.move_to_target)
         chase_node = Sequence('플레이어 쫓아감',c_near,a_move)
 
-        idle_node = Action('그냥 서있기', self.idle)
+        wander_node = Sequence(
+            '랜덤 배회',
+            Action('랜덤 위치 설정', self.set_random_target),
+            Action('랜덤 위치로 이동', self.move_to_random_position)
+        )
 
-        root = Selector('몬스터 BT',chase_node,idle_node)
+        root = Selector('몬스터 BT',chase_node,wander_node)
 
         return BehaviorTree(root)
 
