@@ -271,12 +271,6 @@ class Boss1(Monster):
     attack_image = None
 
     def __init__(self, x, y, target=None):
-        super().__init__(x, y, hp=500, size=100, target=target)
-        if Boss1.walk_image is None:
-            Boss1.walk_image = load_image('asset/Monster/boss1_walk.png')
-            Boss1.idle_image = load_image('asset/Monster/boss1_idle.png')
-            Boss1.attack_image = load_image('asset/Monster/boss1_attack.png')
-
         self.sprite_info = {
             'walk': {'frames': 6, 'sx': 0, 'sy': 0, 'sw': 128, 'sh': 150, 'dw': 256, 'dh': 300, 'total_rows': 2},
             'idle': {'frames': 4, 'sx': 0, 'sy': 0, 'sw': 128, 'sh': 150, 'dw': 256, 'dh': 300, 'total_rows': 1},
@@ -284,13 +278,133 @@ class Boss1(Monster):
         }
 
         self.speed_factor = 0.8
-        self.attack_range = 100
-        self.detection_range = 200
+        self.attack_range = int(PIXEL_PER_METER * 3)
+        self.detection_range = int(PIXEL_PER_METER * 7)
         self.attack_cooldown = 1.0
         self.post_attack_cooldown = 0
         self.state = 'idle'
         self.frame_speed = 0.5
         self.attack_finished = False
+
+        super().__init__(x, y, hp=500, size=100, target=target)
+
+        if Boss1.walk_image is None:
+            Boss1.walk_image = load_image('asset/Monster/boss1_walk.png')
+            Boss1.idle_image = load_image('asset/Monster/boss1_idle.png')
+            Boss1.attack_image = load_image('asset/Monster/boss1_attack.png')
+
+    def get_center_pos(self):
+        return self.x, self.y - 80
+
+    def is_attack_range(self):
+        if self.target is None:
+            return BehaviorTree.FAIL
+        cx, cy = self.get_center_pos()
+        dx = self.target.x - cx
+        dy = self.target.y - cy
+        dist = math.hypot(dx, dy)
+        if dist <= self.attack_range:
+            return BehaviorTree.SUCCESS
+        else:
+            return BehaviorTree.FAIL
+
+    def is_detection_range(self):
+        if self.target is None:
+            return BehaviorTree.FAIL
+        cx, cy = self.get_center_pos()
+        dx = self.target.x - cx
+        dy = self.target.y - cy
+        dist = math.hypot(dx, dy)
+        if dist <= self.detection_range:
+            return BehaviorTree.SUCCESS
+        else:
+            return BehaviorTree.FAIL
+
+    def do_attack(self):
+        if self.post_attack_cooldown > 0:
+            self.state = 'idle'
+            return BehaviorTree.FAIL
+
+        if self.state != 'attack' or self.attack_finished:
+            self.state = 'attack'
+            self.attack_finished = False
+            self.frame = 0
+
+        self.dir_x = 0
+        self.dir_y = 0
+
+        if self.target:
+            cx, cy = self.get_center_pos()
+            dx = self.target.x - cx
+            if dx > 0:
+                self.face_dir = 1
+            elif dx < 0:
+                self.face_dir = -1
+
+        if self.attack_finished:
+            return BehaviorTree.SUCCESS
+        else:
+            return BehaviorTree.RUNNING
+
+    def move_to_target_boss(self):
+        if self.target is None:
+            return BehaviorTree.FAIL
+
+        self.state = 'walk'
+
+        cx, cy = self.get_center_pos()
+        dx = self.target.x - cx
+        dy = self.target.y - cy
+        dist = math.hypot(dx, dy)
+
+        if dist > 1:
+            nx = dx / dist
+            ny = dy / dist
+            self.dir_x = nx
+            self.dir_y = ny
+            self.x += self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+            self.y += self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+
+            if self.dir_x > 0:
+                self.face_dir = 1
+            elif self.dir_x < 0:
+                self.face_dir = -1
+
+            return BehaviorTree.SUCCESS
+        else:
+            self.dir_x = 0
+            self.dir_y = 0
+            return BehaviorTree.SUCCESS
+
+    def boss_idle(self):
+        self.state = 'idle'
+        self.dir_x = 0
+        self.dir_y = 0
+        return BehaviorTree.SUCCESS
+
+    def build_behavior_tree(self):
+        attack_node = Sequence(
+            '공격',
+            Condition('공격 범위 안?', self.is_attack_range),
+            Action('공격 실행', self.do_attack)
+        )
+
+        chase_node = Sequence(
+            '추적',
+            Condition('감지 범위 안?', self.is_detection_range),
+            Action('타겟으로 이동', self.move_to_target_boss)
+        )
+
+        idle_node = Action('대기', self.boss_idle)
+
+        root = Selector(
+            '보스 AI',
+            attack_node,
+            chase_node,
+            idle_node
+        )
+
+        return BehaviorTree(root)
 
     def update(self):
         if not self.alive:
@@ -299,7 +413,6 @@ class Boss1(Monster):
         max_frames = self.sprite_info[self.state]['frames']
 
         if self.state == 'attack':
-            prev_frame = int(self.frame)
             self.frame = self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time * self.frame_speed
 
             if self.frame >= max_frames:
@@ -307,50 +420,14 @@ class Boss1(Monster):
                 if not self.attack_finished:
                     self.attack_finished = True
                     self.post_attack_cooldown = self.attack_cooldown
-                    self.state = 'idle'
         else:
             self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time * self.frame_speed) % max_frames
 
         if self.post_attack_cooldown > 0:
             self.post_attack_cooldown -= game_framework.frame_time
 
-        if self.target is not None:
-            dx = self.target.x - self.x
-            dy = self.target.y - self.y
-            dist = math.hypot(dx, dy)
-
-            if dx > 0:
-                self.face_dir = 1
-            elif dx < 0:
-                self.face_dir = -1
-
-            if self.state == 'attack' and not self.attack_finished:
-                self.dir_x = 0
-                self.dir_y = 0
-
-            elif self.post_attack_cooldown > 0:
-                self.state = 'idle'
-                self.dir_x = 0
-                self.dir_y = 0
-
-            elif dist <= self.attack_range:
-                self.state = 'attack'
-                self.attack_finished = False
-                self.frame = 0
-                self.dir_x = 0
-                self.dir_y = 0
-            elif dist <= self.detection_range:
-                self.state = 'walk'
-                nx = dx / dist
-                ny = dy / dist
-                self.dir_x = nx
-                self.dir_y = ny
-                self.x += self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
-                self.y += self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
-            else:
-                self.state = 'idle'
-                self.dir_x = 0
-                self.dir_y = 0
+        if self.bt:
+            self.bt.run()
 
     def draw(self):
         cam = game_world.camera
@@ -404,9 +481,18 @@ class Boss1(Monster):
                 sl2, sb2 = cam.to_camera(l2, b2)
                 sr2, st2 = cam.to_camera(r2, t2)
                 draw_rectangle(sl2, sb2, sr2, st2)
+
+                cx, cy = self.get_center_pos()
+                bx, by = cam.to_camera(cx, cy)
+                draw_circle(int(bx), int(by), int(PIXEL_PER_METER * 3), 255, 255, 0)
+                draw_circle(int(bx), int(by), int(PIXEL_PER_METER * 7), 0, 255, 0)
             else:
                 draw_rectangle(*self.get_bb())
                 draw_rectangle(*self.get_hit_bb())
+
+                cx, cy = self.get_center_pos()
+                draw_circle(int(cx), int(cy), int(PIXEL_PER_METER * 3), 255, 255, 0)
+                draw_circle(int(cx), int(cy), int(PIXEL_PER_METER * 7), 0, 255, 0)
 
     def get_bb(self):
         if self.state == 'attack' and 8 <= int(self.frame) <= 11:
