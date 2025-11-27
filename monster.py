@@ -1,7 +1,8 @@
-from pico2d import load_image, draw_rectangle
+from pico2d import load_image, draw_rectangle, draw_circle
 import math
 import game_framework
 import game_world
+from behavior_tree import BehaviorTree, Action, Sequence, Condition, Selector
 
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH = 10.0
@@ -26,6 +27,7 @@ class Monster:
         self.target = target
         self.alive = True
         self.size = size
+        self.bt = self.build_behavior_tree()
 
     def update(self):
         if not self.alive:
@@ -33,25 +35,8 @@ class Monster:
 
         self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
 
-        if self.target is not None:
-            dx = self.target.x - self.x
-            dy = self.target.y - self.y
-            dist = math.hypot(dx, dy)
-            if dist > 1:
-                nx = dx / dist
-                ny = dy / dist
-                self.dir_x = nx
-                self.dir_y = ny
-                self.x += self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
-                self.y += self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
-            else:
-                self.dir_x = 0
-                self.dir_y = 0
-
-        if self.dir_x > 0:
-            self.face_dir = 1
-        elif self.dir_x < 0:
-            self.face_dir = -1
+        if self.bt:
+            self.bt.run()
 
     def draw(self):
         cam = game_world.camera
@@ -78,12 +63,68 @@ class Monster:
                 draw_rectangle(sl, sb, sr, st)
             else:
                 draw_rectangle(*self.get_bb())
+                draw_circle(self.x, self.y, int(PIXEL_PER_METER * 7), 255, 255, 0)
 
     def handle_collision(self, group, other):
         pass
 
     def get_bb(self):
         return self.x - self.size, self.y - self.size, self.x + self.size, self.y + self.size
+
+    def distance_less_than(self, x1, y1, x2, y2, r):
+
+        distance2 = (x2 - x1) ** 2 + (y2 - y1) ** 2
+        return distance2 < (PIXEL_PER_METER * r) ** 2
+
+    def is_target_nearby(self, distance):
+        if self.distance_less_than(self.x, self.y, self.target.x, self.target.y, distance):
+            return BehaviorTree.SUCCESS
+        else:
+            return BehaviorTree.FAIL
+
+    def move_to_target(self):
+        if self.target is None:
+            return BehaviorTree.FAIL
+
+        dx = self.target.x - self.x
+        dy = self.target.y - self.y
+        dist = math.hypot(dx, dy)
+
+        if dist > 1:
+            nx = dx / dist
+            ny = dy / dist
+            self.dir_x = nx
+            self.dir_y = ny
+            self.x += self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+            self.y += self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+
+            if self.dir_x > 0:
+                self.face_dir = 1
+            elif self.dir_x < 0:
+                self.face_dir = -1
+
+            return BehaviorTree.SUCCESS
+        else:
+            self.dir_x = 0
+            self.dir_y = 0
+            return BehaviorTree.SUCCESS
+
+    def idle(self):
+        self.dir_x = 0
+        self.dir_y = 0
+        return BehaviorTree.SUCCESS
+
+    def build_behavior_tree(self):
+
+        c_near = Condition('가까이 있는가?', self.is_target_nearby, 7)
+        a_move = Action('타겟으로 이동', self.move_to_target)
+        chase_node = Sequence('플레이어 쫓아감',c_near,a_move)
+
+        idle_node = Action('그냥 서있기', self.idle)
+
+        root = Selector('몬스터 BT',chase_node,idle_node)
+
+        return BehaviorTree(root)
 
 
 
@@ -251,12 +292,12 @@ class Boss1(Monster):
                 draw_rectangle(*self.get_bb())
                 draw_rectangle(*self.get_hit_bb())
 
-    def get_bb(self): #몬스터가 플레이어 공격 시 바운딩박스
+    def get_bb(self):
         if self.state == 'attack' and 8 <= int(self.frame) <= 11:
             offset = self.face_dir * 80
             return self.x - self.size + offset + 50, self.y - self.size - 50, self.x + self.size + offset - 50, self.y + self.size - 50
         else:
             return self.x, self.y, self.x, self.y
 
-    def get_hit_bb(self): #플레이어가 몬스터 공격 시 바운딩박스
+    def get_hit_bb(self):
         return self.x - 60, self.y - 150, self.x + 60, self.y + 20
