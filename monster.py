@@ -232,11 +232,7 @@ class Monster:
         a_move = Action('타겟으로 이동', self.move_to_target)
         chase_node = Sequence('플레이어 쫓아감',c_near,a_move)
 
-        wander_node = Sequence(
-            '랜덤 배회',
-            Action('랜덤 위치 설정', self.set_random_target),
-            Action('랜덤 위치로 이동', self.move_to_random_position)
-        )
+        wander_node = Sequence('랜덤 배회',Action('랜덤 위치 설정', self.set_random_target),Action('랜덤 위치로 이동', self.move_to_random_position))
 
         root = Selector('몬스터 BT',chase_node,wander_node)
 
@@ -442,30 +438,13 @@ class Boss1(Monster):
             return BehaviorTree.SUCCESS
 
     def build_behavior_tree(self):
-        attack_node = Sequence(
-            '공격',
-            Condition('공격 범위 안?', self.is_attack_range),
-            Action('공격 실행', self.do_attack)
-        )
+        attack_node = Sequence('공격',Condition('공격 범위 안?', self.is_attack_range),Action('공격 실행', self.do_attack))
 
-        chase_node = Sequence(
-            '추적',
-            Condition('감지 범위 안?', self.is_detection_range),
-            Action('타겟으로 이동', self.move_to_target_boss)
-        )
+        chase_node = Sequence('추적',Condition('감지 범위 안?', self.is_detection_range),Action('타겟으로 이동', self.move_to_target_boss))
 
-        wander_node = Sequence(
-            '랜덤 배회',
-            Action('랜덤 위치 설정', self.set_random_target_boss),
-            Action('랜덤 위치로 이동', self.move_to_random_position_boss)
-        )
+        wander_node = Sequence('랜덤 배회',Action('랜덤 위치 설정', self.set_random_target_boss),Action('랜덤 위치로 이동', self.move_to_random_position_boss))
 
-        root = Selector(
-            '보스 AI',
-            attack_node,
-            chase_node,
-            wander_node
-        )
+        root = Selector('보스 AI',attack_node,chase_node,wander_node)
 
         return BehaviorTree(root)
 
