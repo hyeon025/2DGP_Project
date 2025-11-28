@@ -362,8 +362,13 @@ class Boss1(Monster):
             ny = dy / dist
             self.dir_x = nx
             self.dir_y = ny
-            self.x += self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
-            self.y += self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+
+            new_x = self.x + self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+            new_y = self.y + self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+
+            if is_valid_position(new_x, new_y, margin_meters=1.5):
+                self.x = new_x
+                self.y = new_y
 
             if self.dir_x > 0:
                 self.face_dir = 1
@@ -382,6 +387,60 @@ class Boss1(Monster):
         self.dir_y = 0
         return BehaviorTree.SUCCESS
 
+    def set_random_target_boss(self):
+        FIVE_METERS = int(PIXEL_PER_METER * 5)
+        MAX_ATTEMPTS = 30
+
+        for _ in range(MAX_ATTEMPTS):
+            offset_x = random.randint(-FIVE_METERS, FIVE_METERS)
+            offset_y = random.randint(-FIVE_METERS, FIVE_METERS)
+
+            candidate_x = self.x + offset_x
+            candidate_y = self.y + offset_y
+
+            if is_valid_position(candidate_x, candidate_y, margin_meters=1.5):
+                self.random_target_x = candidate_x
+                self.random_target_y = candidate_y
+                return BehaviorTree.SUCCESS
+
+        self.random_target_x = self.x
+        self.random_target_y = self.y
+        return BehaviorTree.SUCCESS
+
+    def move_to_random_position_boss(self):
+        self.state = 'walk'
+
+        dx = self.random_target_x - self.x
+        dy = self.random_target_y - self.y
+        dist = math.hypot(dx, dy)
+
+        if dist > 20:
+            nx = dx / dist
+            ny = dy / dist
+            self.dir_x = nx
+            self.dir_y = ny
+
+            new_x = self.x + self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+            new_y = self.y + self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+
+            if is_valid_position(new_x, new_y, margin_meters=1.5):
+                self.x = new_x
+                self.y = new_y
+            else:
+                return BehaviorTree.SUCCESS
+
+            if self.dir_x > 0:
+                self.face_dir = 1
+            elif self.dir_x < 0:
+                self.face_dir = -1
+
+            return BehaviorTree.RUNNING
+        else:
+            self.dir_x = 0
+            self.dir_y = 0
+            self.state = 'idle'
+            return BehaviorTree.SUCCESS
+
     def build_behavior_tree(self):
         attack_node = Sequence(
             '공격',
@@ -395,13 +454,17 @@ class Boss1(Monster):
             Action('타겟으로 이동', self.move_to_target_boss)
         )
 
-        idle_node = Action('대기', self.boss_idle)
+        wander_node = Sequence(
+            '랜덤 배회',
+            Action('랜덤 위치 설정', self.set_random_target_boss),
+            Action('랜덤 위치로 이동', self.move_to_random_position_boss)
+        )
 
         root = Selector(
             '보스 AI',
             attack_node,
             chase_node,
-            idle_node
+            wander_node
         )
 
         return BehaviorTree(root)
