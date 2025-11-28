@@ -9,6 +9,9 @@ BULLET_SPEED_MPM = (BULLET_SPEED_KMPH * 1000.0 / 60.0)
 BULLET_SPEED_MPS = (BULLET_SPEED_MPM / 60.0)
 BULLET_SPEED_PPS = (BULLET_SPEED_MPS * PIXEL_PER_METER)
 
+FRAMES_PER_ACTION = 4
+ACTION_PER_TIME = 1.0
+
 
 class Bomb:
     image = None
@@ -18,6 +21,7 @@ class Bomb:
         self.y = y
         self.damage = damage
         self.alive = True
+        self.frame = 0
 
         if Bomb.image is None:
             Bomb.image = load_image('asset/attack/bomb.png')
@@ -42,6 +46,8 @@ class Bomb:
         self.x += self.dir_x * BULLET_SPEED_PPS * game_framework.frame_time
         self.y += self.dir_y * BULLET_SPEED_PPS * game_framework.frame_time
 
+        self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
+
         self.lifetime -= game_framework.frame_time
         if self.lifetime <= 0:
             self.alive = False
@@ -57,7 +63,7 @@ class Bomb:
         else:
             sx, sy = self.x, self.y
 
-        self.image.draw(sx, sy, 32, 32)
+        self.image.clip_draw(int(self.frame) * 12, 0, 12, 12, sx, sy, 32, 32)
 
         if game_framework.show_bb:
             if cam:
@@ -72,7 +78,7 @@ class Bomb:
         return self.x - 16, self.y - 16, self.x + 16, self.y + 16
 
     def handle_collision(self, group, other):
-        if group == 'bullet:monster':
+        if group == 'bullet:player':
             self.alive = False
 
 
@@ -138,5 +144,5 @@ class BulletStone:
         return self.x - 12, self.y - 12, self.x + 12, self.y + 12
 
     def handle_collision(self, group, other):
-        if group == 'bullet:monster':
+        if group == 'bullet:player':
             self.alive = False
