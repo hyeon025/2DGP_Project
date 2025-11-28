@@ -84,12 +84,17 @@ class Bomb:
 
 class BulletStone:
     image = None
+    FRAME_WIDTH = 40
+    FRAME_HEIGHT = 38
+    TOTAL_FRAMES = 12
+    FRAMES_PER_ROW = 6
 
     def __init__(self, x, y, target_x, target_y, damage=5):
         self.x = x
         self.y = y
         self.damage = damage
         self.alive = True
+        self.frame = 0
 
         if BulletStone.image is None:
             BulletStone.image = load_image('asset/attack/bullet_stone.png')
@@ -114,6 +119,8 @@ class BulletStone:
         self.x += self.dir_x * BULLET_SPEED_PPS * game_framework.frame_time
         self.y += self.dir_y * BULLET_SPEED_PPS * game_framework.frame_time
 
+        self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % BulletStone.TOTAL_FRAMES
+
         self.lifetime -= game_framework.frame_time
         if self.lifetime <= 0:
             self.alive = False
@@ -129,7 +136,11 @@ class BulletStone:
         else:
             sx, sy = self.x, self.y
 
-        self.image.draw(sx, sy, 24, 24)
+        frame_index = int(self.frame)
+        frame_x = (frame_index % BulletStone.FRAMES_PER_ROW) * BulletStone.FRAME_WIDTH
+        frame_y = (frame_index // BulletStone.FRAMES_PER_ROW) * BulletStone.FRAME_HEIGHT
+
+        self.image.clip_draw(frame_x, frame_y, BulletStone.FRAME_WIDTH, BulletStone.FRAME_HEIGHT, sx, sy, 24, 24)
 
         if game_framework.show_bb:
             if cam:
