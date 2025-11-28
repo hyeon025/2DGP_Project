@@ -5,6 +5,7 @@ import random
 import game_framework
 import game_world
 from behavior_tree import BehaviorTree, Action, Sequence, Condition, Selector
+from bullet import Bomb
 
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH = 10.0
@@ -88,6 +89,7 @@ class Monster:
         self.target = target
         self.alive = True
         self.size = size
+        self.speed_factor = 1.0
         self.random_target_x = x
         self.random_target_y = y
         self.bt = self.build_behavior_tree()
@@ -281,6 +283,8 @@ class Boss1(Monster):
         self.state = 'idle'
         self.frame_speed = 0.5
         self.attack_finished = False
+        self.bomb_cooldown = 5.0
+        self.bomb_timer = 0
 
         super().__init__(x, y, hp=500, size=100, target=target)
 
@@ -362,7 +366,7 @@ class Boss1(Monster):
             new_x = self.x + self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
             new_y = self.y + self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
 
-            if is_valid_position(new_x, new_y, margin_meters=1.5):
+            if is_valid_position(new_x, new_y, margin_meters=1):
                 self.x = new_x
                 self.y = new_y
 
@@ -394,7 +398,7 @@ class Boss1(Monster):
             candidate_x = self.x + offset_x
             candidate_y = self.y + offset_y
 
-            if is_valid_position(candidate_x, candidate_y, margin_meters=1.5):
+            if is_valid_position(candidate_x, candidate_y, margin_meters=1):
                 self.random_target_x = candidate_x
                 self.random_target_y = candidate_y
                 return BehaviorTree.SUCCESS
@@ -419,7 +423,7 @@ class Boss1(Monster):
             new_x = self.x + self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
             new_y = self.y + self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
 
-            if is_valid_position(new_x, new_y, margin_meters=1.5):
+            if is_valid_position(new_x, new_y, margin_meters=1):
                 self.x = new_x
                 self.y = new_y
             else:
@@ -436,6 +440,27 @@ class Boss1(Monster):
             self.dir_y = 0
             self.state = 'idle'
             return BehaviorTree.SUCCESS
+
+    def shoot_bombs_8_directions(self):
+        cx, cy = self.get_center_pos()
+
+        directions = [
+            (1, 0),   # 동
+            (1, 1),   # 북동
+            (0, 1),   # 북
+            (-1, 1),  # 북서
+            (-1, 0),  # 서
+            (-1, -1), # 남서
+            (0, -1),  # 남
+            (1, -1)   # 남동
+        ]
+
+        for dx, dy in directions:
+            target_x = cx + dx * 1000
+            target_y = cy + dy * 1000
+            bomb = Bomb(cx, cy, target_x, target_y, damage=15)
+            game_world.add_object(bomb, 1)
+            game_world.add_collision_pair('bullet:player', bomb, None)
 
     def build_behavior_tree(self):
         attack_node = Sequence('공격',Condition('공격 범위 안?', self.is_attack_range),Action('공격 실행', self.do_attack))
@@ -467,6 +492,20 @@ class Boss1(Monster):
 
         if self.post_attack_cooldown > 0:
             self.post_attack_cooldown -= game_framework.frame_time
+
+        if self.target:
+            cx, cy = self.get_center_pos()
+            dx = self.target.x - cx
+            dy = self.target.y - cy
+            dist = math.hypot(dx, dy)
+
+            if dist > PIXEL_PER_METER * 3:
+                self.bomb_timer += game_framework.frame_time
+                if self.bomb_timer >= self.bomb_cooldown:
+                    self.shoot_bombs_8_directions()
+                    self.bomb_timer = 0
+            else:
+                self.bomb_timer = 0
 
         if self.bt:
             self.bt.run()
