@@ -233,6 +233,9 @@ class Player:
         self.frame = 0
         self.colliding_particle = None
         self.hp = 200
+        self.invincible = False
+        self.invincible_timer = 0
+        self.invincible_duration = 0.5
 
         self.last_move_dir_x = 1
         self.last_move_dir_y = 0
@@ -277,6 +280,12 @@ class Player:
         # if self.skill:
         #     self.skill.update()
 
+        if self.invincible_timer > 0:
+            self.invincible_timer -= game_framework.frame_time
+            if self.invincible_timer <= 0:
+                self.invincible = False
+                self.invincible_timer = 0
+
     def handle_event(self,event):
         self.state_machine.handle_state_events(('INPUT', event))
 
@@ -290,8 +299,11 @@ class Player:
         if group == 'particle:player':
             self.colliding_particle = other
         elif group == 'bullet:player':
-            self.hp -= other.damage
-            print(f'bomb에 피격당함. HP: {self.hp}')
+            if not self.invincible:
+                self.hp -= other.damage
+                print(f'bomb에 피격당함. HP: {self.hp}')
+                self.invincible = True
+                self.invincible_timer = self.invincible_duration
 
     def use_skill(self):
         if self.skill:
