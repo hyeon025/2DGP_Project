@@ -142,7 +142,6 @@ class Walk:
         elif self.player.dir_x < 0:
             self.player.face_dir = -1
 
-        # 마지막 이동 방향 업데이트 (공격/스킬 방향용)
         if self.player.dir_x != 0 or self.player.dir_y != 0:
             self.player.last_move_dir_x = self.player.dir_x
             self.player.last_move_dir_y = self.player.dir_y
@@ -297,11 +296,11 @@ class Player:
     def use_skill(self):
         if self.skill:
             if self.skill.is_active:
-                print("스킬이 이미 사용 중입니다.")
+                print("스킬 사용중")
                 return
 
             if hasattr(self.skill, 'can_use') and not self.skill.can_use():
-                print("잔상이 아직 사라지지 않았습니다.")
+                print("잔상 남아있음")
                 return
 
             if self.skill not in game_world.world[2]:

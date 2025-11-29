@@ -451,14 +451,14 @@ class Boss1(Monster):
         cx, cy = self.get_center_pos()
 
         directions = [
-            (1, 0),   # 동
-            (1, 1),   # 북동
-            (0, 1),   # 북
-            (-1, 1),  # 북서
-            (-1, 0),  # 서
-            (-1, -1), # 남서
-            (0, -1),  # 남
-            (1, -1)   # 남동
+            (1, 0),
+            (1, 1),
+            (0, 1),
+            (-1, 1),
+            (-1, 0),
+            (-1, -1),
+            (0, -1),
+            (1, -1)
         ]
 
         for dx, dy in directions:
@@ -468,6 +468,10 @@ class Boss1(Monster):
             game_world.add_object(bomb, 5)
             if self.target:
                 game_world.add_collision_pair('bullet:player', bomb, self.target)
+                if hasattr(self.target, 'weapon') and self.target.weapon:
+                    game_world.add_collision_pair('weapon:bullet', self.target.weapon, bomb)
+                if hasattr(self.target, 'skill') and self.target.skill:
+                    game_world.add_collision_pair('skill:bullet', self.target.skill, bomb)
 
     def build_behavior_tree(self):
         attack_node = Sequence('공격',Condition('공격 범위 안?', self.is_attack_range),Action('공격 실행', self.do_attack))
