@@ -288,6 +288,9 @@ class Boss1(Monster):
         self.is_shooting_bomb = False
         self.bomb_shoot_delay = 1.0
         self.bomb_shoot_timer = 0
+        self.bomb_shoot_count = 0
+        self.bomb_shoot_max = 3
+        self.bomb_shoot_interval = 0.2
 
         super().__init__(x, y, hp=500, size=100, target=target)
 
@@ -496,18 +499,22 @@ class Boss1(Monster):
         if self.post_attack_cooldown > 0:
             self.post_attack_cooldown -= game_framework.frame_time
 
-        # bomb 발사 중일 때 타이머 관리
         if self.is_shooting_bomb:
             self.bomb_shoot_timer += game_framework.frame_time
             self.state = 'idle'
             self.dir_x = 0
             self.dir_y = 0
 
+            if self.bomb_shoot_count < self.bomb_shoot_max:
+                if self.bomb_shoot_timer >= self.bomb_shoot_interval * self.bomb_shoot_count:
+                    self.shoot_bombs_8_directions()
+                    self.bomb_shoot_count += 1
+
             if self.bomb_shoot_timer >= self.bomb_shoot_delay:
                 self.is_shooting_bomb = False
                 self.bomb_shoot_timer = 0
+                self.bomb_shoot_count = 0
 
-        # bomb 발사 체크
         if self.target and not self.is_shooting_bomb:
             cx, cy = self.get_center_pos()
             dx = self.target.x - cx
@@ -521,13 +528,12 @@ class Boss1(Monster):
                     self.state = 'idle'
                     self.dir_x = 0
                     self.dir_y = 0
-                    self.shoot_bombs_8_directions()
                     self.bomb_timer = 0
                     self.bomb_shoot_timer = 0
+                    self.bomb_shoot_count = 0
             else:
                 self.bomb_timer = 0
 
-        # bomb 발사 중이 아닐 때만 BehaviorTree 실행
         if self.bt and not self.is_shooting_bomb:
             self.bt.run()
 
