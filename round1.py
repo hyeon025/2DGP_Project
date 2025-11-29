@@ -5,6 +5,7 @@ from PIL import Image
 import game_framework
 import game_world
 from monster import Monster, AngryEggMonster, EggMonster, Boss1
+from hp import BossHPBar
 
 _background_cache = {}
 
@@ -61,7 +62,7 @@ def spawn_monsters(room_num, player):
     for monster in monsters:
         game_world.remove_object(monster)
     monsters.clear()
-    print(f"Cleared all previous monsters")
+    # print(f"Cleared all previous monsters")
 
     if rooms[room_num]['type'] == 0 or rooms[room_num]['num'] == 0:
         return
@@ -80,15 +81,18 @@ def spawn_monsters(room_num, player):
         base_y = 3140 * 2
 
     elif room_num == 4:
-        print(f"Boss1 spawning at room 4")
+        # print(f"Boss1 spawning at room 4")
         base_x = player.x + 150
         base_y = player.y
 
         boss = Boss1(base_x, base_y, player)
-        print(f"Boss1 created at ({base_x}, {base_y}), Player at ({player.x}, {player.y})")
+        # print(f"Boss1 created at ({base_x}, {base_y}), Player at ({player.x}, {player.y})")
         monsters.append(boss)
         game_world.add_object(boss, 3)
         game_world.add_collision_pair('player:monster', player, boss)
+
+        boss_hp_bar = BossHPBar(boss)
+        game_world.add_object(boss_hp_bar, 4)
 
         if player.weapon:
             game_world.add_collision_pair('weapon:monster', player.weapon, boss)
@@ -96,7 +100,7 @@ def spawn_monsters(room_num, player):
         if player.skill:
             game_world.add_collision_pair('skill:monster', player.skill, boss)
 
-        print(f"Boss1 spawn complete. Total monsters: {len(monsters)}")
+        # print(f"Boss1 스폰. Total monsters: {len(monsters)}")
         return
 
     for monster_type, count in current_monster_counts.items():
