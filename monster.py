@@ -267,12 +267,14 @@ class Boss1(Monster):
     walk_image = None
     idle_image = None
     attack_image = None
+    death_image = None
 
     def __init__(self, x, y, target=None):
         self.sprite_info = {
             'walk': {'frames': 6, 'sx': 0, 'sy': 0, 'sw': 128, 'sh': 150, 'dw': 256, 'dh': 300, 'total_rows': 2},
             'idle': {'frames': 4, 'sx': 0, 'sy': 0, 'sw': 128, 'sh': 150, 'dw': 256, 'dh': 300, 'total_rows': 1},
-            'attack': {'frames': 13, 'sx': 0, 'sy': 0, 'sw': 128, 'sh': 150, 'dw': 256, 'dh': 300, 'total_rows': 4}
+            'attack': {'frames': 13, 'sx': 0, 'sy': 0, 'sw': 128, 'sh': 150, 'dw': 256, 'dh': 300, 'total_rows': 4},
+            'death': {'frames': 4, 'sx': 0, 'sy': 0, 'sw': 128, 'sh': 150, 'dw': 246, 'dh': 300, 'total_rows': 1}
         }
 
         self.speed_factor = 0.8
@@ -291,6 +293,7 @@ class Boss1(Monster):
         self.bomb_shoot_count = 0
         self.bomb_shoot_max = 3
         self.bomb_shoot_interval = 0.2
+        self.death_animation_finished = False
 
         super().__init__(x, y, hp=500, size=100, target=target)
 
@@ -298,6 +301,7 @@ class Boss1(Monster):
             Boss1.walk_image = load_image('asset/Monster/boss1_walk.png')
             Boss1.idle_image = load_image('asset/Monster/boss1_idle.png')
             Boss1.attack_image = load_image('asset/Monster/boss1_attack.png')
+            Boss1.death_image = load_image('asset/Monster/boss1_death.png')
 
     def get_center_pos(self):
         return self.x, self.y - 80
@@ -486,6 +490,18 @@ class Boss1(Monster):
 
     def update(self):
         if not self.alive:
+            if self.state != 'death':
+                self.state = 'death'
+                self.frame = 0
+                self.death_animation_finished = False
+
+            if not self.death_animation_finished:
+                max_frames = self.sprite_info['death']['frames']
+                self.frame = self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time * self.frame_speed
+
+                if self.frame >= max_frames - 1:
+                    self.frame = max_frames - 1
+                    self.death_animation_finished = True
             return
 
         max_frames = self.sprite_info[self.state]['frames']
@@ -553,6 +569,8 @@ class Boss1(Monster):
             current_image = Boss1.walk_image
         elif self.state == 'idle':
             current_image = Boss1.idle_image
+        elif self.state == 'death':
+            current_image = Boss1.death_image
         else:
             current_image = Boss1.attack_image
 
@@ -564,24 +582,18 @@ class Boss1(Monster):
         sprite_x = frame_col * info['sw'] + info['sx']
         sprite_y = (info['total_rows'] - 1 - frame_row) * info['sh'] + info['sy']
 
-        if self.alive:
-            if self.face_dir == 1:
-                current_image.clip_draw(
-                    sprite_x, sprite_y,
-                    info['sw'], info['sh'],
-                    sx, sy, info['dw'], info['dh']
-                )
-            else:
-                current_image.clip_composite_draw(
-                    sprite_x, sprite_y,
-                    info['sw'], info['sh'],
-                    0, 'h', sx, sy, info['dw'], info['dh']
-                )
+        if self.face_dir == 1:
+            current_image.clip_draw(
+                sprite_x, sprite_y,
+                info['sw'], info['sh'],
+                sx, sy, info['dw'], info['dh']
+            )
         else:
-            if self.face_dir == 1:
-                Boss1.walk_image.clip_draw(0, 0, 128, 150, sx, sy, 256, 300)
-            else:
-                Boss1.walk_image.clip_composite_draw(0, 0, 128, 150, 0, 'h', sx, sy, 256, 300)
+            current_image.clip_composite_draw(
+                sprite_x, sprite_y,
+                info['sw'], info['sh'],
+                0, 'h', sx, sy, info['dw'], info['dh']
+            )
 
         if game_framework.show_bb and self.alive:
             if cam:
