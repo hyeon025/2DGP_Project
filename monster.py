@@ -465,8 +465,9 @@ class Boss1(Monster):
             target_x = cx + dx * 1000
             target_y = cy + dy * 1000
             bomb = Bomb(cx, cy, target_x, target_y, damage=15)
-            game_world.add_object(bomb, 1)
-            game_world.add_collision_pair('bullet:player', bomb, None)
+            game_world.add_object(bomb, 5)
+            if self.target:
+                game_world.add_collision_pair('bullet:player', bomb, self.target)
 
     def build_behavior_tree(self):
         attack_node = Sequence('공격',Condition('공격 범위 안?', self.is_attack_range),Action('공격 실행', self.do_attack))

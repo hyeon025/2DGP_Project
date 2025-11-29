@@ -233,6 +233,7 @@ class Player:
         self.dir_y = 0
         self.frame = 0
         self.colliding_particle = None
+        self.hp = 200
 
         self.last_move_dir_x = 1
         self.last_move_dir_y = 0
@@ -289,6 +290,9 @@ class Player:
     def handle_collision(self, group, other):
         if group == 'particle:player':
             self.colliding_particle = other
+        elif group == 'bullet:player':
+            self.hp -= other.damage
+            print(f'bomb에 피격당함. HP: {self.hp}')
 
     def use_skill(self):
         if self.skill:
