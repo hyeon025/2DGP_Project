@@ -8,11 +8,12 @@ from player import Player
 from particle import Particle , job_selec_atf
 import game_framework
 from camera import Camera
+from hp import PlayerHPBar
 
 camera = Camera(world_w=5000, world_h=5000, screen_w=1200, screen_h=900)
 
 def init():
-    global world, player
+    global world, player, player_hp_bar
     global job_selec_atf
 
     game_world.camera = camera
@@ -25,6 +26,9 @@ def init():
 
     player = Player(current_job)
     game_world.add_object(player,4)
+
+    player_hp_bar = PlayerHPBar(player)
+    game_world.add_object(player_hp_bar, 5)
 
     for x,y in [(300,340),(600,340),(900,340),(600,680)]:
         particles = Particle(x,y)

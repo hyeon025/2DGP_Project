@@ -5,13 +5,14 @@ import map as game_map
 from job import Player_job, current_job, Job
 from player import Player
 from camera import Camera
+from hp import PlayerHPBar
 import round1
 
 camera = Camera(world_w=5000 * 2, world_h=5000 * 2, screen_w=1200, screen_h=900)
 
 
 def init():
-    global player, map_obj
+    global player, map_obj, player_hp_bar
 
     game_world.camera = camera
 
@@ -27,6 +28,9 @@ def init():
     player.IDLE.enter(('STOP', 0))
 
     game_world.add_object(player, 4)
+
+    player_hp_bar = PlayerHPBar(player)
+    game_world.add_object(player_hp_bar, 5)
 
     if player.weapon:
         game_world.add_collision_pair('weapon:monster', player.weapon, None)
@@ -64,6 +68,7 @@ def finish():
     game_world.camera = None
     globals().pop('player', None)
     globals().pop('map_obj', None)
+    globals().pop('player_hp_bar', None)
 
 def pause(): pass
 def resume(): pass
