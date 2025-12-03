@@ -82,8 +82,8 @@ def spawn_monsters(room_num, player):
 
     elif room_num == 4:
         # print(f"Boss1 spawning at room 4")
-        base_x = player.x + 150
-        base_y = player.y
+        base_x = 6040
+        base_y = 5115
 
         boss = Boss1(base_x, base_y, player)
         # print(f"Boss1 created at ({base_x}, {base_y}), Player at ({player.x}, {player.y})")

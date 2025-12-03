@@ -658,6 +658,10 @@ class Boss1(Monster):
             if round1.current_room in round1.rooms:
                 round1.rooms[round1.current_room]['num'] -= 1
 
+            from particle import BossDeathParticle
+            boss_particle = BossDeathParticle(6040,5115)
+            game_world.add_object(boss_particle, 3)
+
         return True
 
     def handle_collision(self, group, other):
