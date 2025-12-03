@@ -304,6 +304,15 @@ class Player:
                 print(f'bomb에 피격당함. HP: {self.hp}')
                 self.invincible = True
                 self.invincible_timer = self.invincible_duration
+        elif group == 'player:monster':
+            pass
+
+    def take_monster_damage(self, damage):
+        if not self.invincible:
+            self.hp -= damage
+            print(f'몬스터에게 피격당함. 데미지: {damage}, HP: {self.hp}')
+            self.invincible = True
+            self.invincible_timer = self.invincible_duration
 
     def use_skill(self):
         if self.skill:

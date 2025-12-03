@@ -136,7 +136,9 @@ class Monster:
                     draw_circle(int(self.target.x), int(self.target.y), int(PIXEL_PER_METER * 7), 255, 255, 0)
 
     def handle_collision(self, group, other):
-        pass
+        if group == 'player:monster' and self.alive:
+            if hasattr(other, 'take_monster_damage'):
+                other.take_monster_damage(10)
 
     def get_bb(self):
         return self.x - self.size, self.y - self.size, self.x + self.size, self.y + self.size
@@ -657,3 +659,9 @@ class Boss1(Monster):
                 round1.rooms[round1.current_room]['num'] -= 1
 
         return True
+
+    def handle_collision(self, group, other):
+        if group == 'player:monster' and self.alive:
+            if self.state == 'attack' and 8 <= int(self.frame) <= 11:
+                if hasattr(other, 'take_monster_damage'):
+                    other.take_monster_damage(20)
