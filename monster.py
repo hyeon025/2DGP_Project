@@ -295,6 +295,9 @@ class Boss1(Monster):
         self.bomb_shoot_interval = 0.2
         self.death_animation_finished = False
 
+        self.hit_cooldown = 0.3
+        self.hit_cooldown_timer = 0
+
         super().__init__(x, y, hp=500, size=100, target=target)
 
         if Boss1.walk_image is None:
@@ -504,6 +507,9 @@ class Boss1(Monster):
                     self.death_animation_finished = True
             return
 
+        if self.hit_cooldown_timer > 0:
+            self.hit_cooldown_timer -= game_framework.frame_time
+
         max_frames = self.sprite_info[self.state]['frames']
 
         if self.state == 'attack':
@@ -602,10 +608,11 @@ class Boss1(Monster):
                 sr, st = cam.to_camera(r, t)
                 draw_rectangle(sl, sb, sr, st)
 
-                l2, b2, r2, t2 = self.get_hit_bb()
-                sl2, sb2 = cam.to_camera(l2, b2)
-                sr2, st2 = cam.to_camera(r2, t2)
-                draw_rectangle(sl2, sb2, sr2, st2)
+                l2, b2, r2, t2 = self.get_attack_bb()
+                if l2 != r2 and b2 != t2:
+                    sl2, sb2 = cam.to_camera(l2, b2)
+                    sr2, st2 = cam.to_camera(r2, t2)
+                    draw_rectangle(sl2, sb2, sr2, st2)
 
                 cx, cy = self.get_center_pos()
                 bx, by = cam.to_camera(cx, cy)
@@ -613,13 +620,18 @@ class Boss1(Monster):
                 draw_circle(int(bx), int(by), int(PIXEL_PER_METER * 7), 0, 255, 0)
             else:
                 draw_rectangle(*self.get_bb())
-                draw_rectangle(*self.get_hit_bb())
+                l2, b2, r2, t2 = self.get_attack_bb()
+                if l2 != r2 and b2 != t2:
+                    draw_rectangle(*self.get_attack_bb())
 
                 cx, cy = self.get_center_pos()
                 draw_circle(int(cx), int(cy), int(PIXEL_PER_METER * 3), 255, 255, 0)
                 draw_circle(int(cx), int(cy), int(PIXEL_PER_METER * 7), 0, 255, 0)
 
     def get_bb(self):
+        return self.x - 60, self.y - 150, self.x + 60, self.y + 20
+
+    def get_attack_bb(self):
         if self.state == 'attack' and 8 <= int(self.frame) <= 11:
             offset = self.face_dir * 80
             return self.x - self.size + offset + 50, self.y - self.size - 50, self.x + self.size + offset - 50, self.y + self.size - 50
@@ -628,3 +640,20 @@ class Boss1(Monster):
 
     def get_hit_bb(self):
         return self.x - 60, self.y - 150, self.x + 60, self.y + 20
+
+    def take_damage(self, damage):
+        if self.hit_cooldown_timer > 0:
+            return False
+
+        self.hp -= damage
+        self.hit_cooldown_timer = self.hit_cooldown
+        print(f"보스 피격! 데미지: {damage}, 남은 HP: {self.hp}")
+
+        if self.hp <= 0:
+            self.alive = False
+            game_world.move_object(self, 2)
+            import round1
+            if round1.current_room in round1.rooms:
+                round1.rooms[round1.current_room]['num'] -= 1
+
+        return True

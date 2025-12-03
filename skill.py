@@ -78,6 +78,7 @@ class AlchemistSkill(Skill):
         self.skill_dir_y = 0
         self.explosion_timer = 0
         self.should_show_mark = True
+        self.hit_monsters = set()
 
     def check_collision_at_target(self, x, y):
         try:
@@ -136,6 +137,7 @@ class AlchemistSkill(Skill):
         self.frame = 0
         self.explosion_timer = 0
 
+        self.hit_monsters.clear()
 
         self.should_show_mark = self.check_collision_at_target(self.target_x, self.target_y)
 
@@ -206,21 +208,28 @@ class AlchemistSkill(Skill):
 
     def handle_collision(self, group, other):
         if group == 'skill:monster' and (not self.is_active) and self.explosion_timer > 0 and self.should_show_mark:
-            if hasattr(other, 'hp') and getattr(other, 'alive', True):
-                other.hp -= self.damage
-                print(f"스킬 폭발 피격: 몬스터 HP={other.hp}")
-                if other.hp <= 0:
-                    other.alive = False
-                    game_world.move_object(other, 2)
-                    import round1
-                    if round1.current_room in round1.rooms:
-                        round1.rooms[round1.current_room]['num'] -= 1
+            if hasattr(other, 'hp') and getattr(other, 'alive', True) and other not in self.hit_monsters:
+                self.hit_monsters.add(other)
 
-                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
-                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+                from monster import Boss1
+                if isinstance(other, Boss1):
+                    if not other.take_damage(self.damage):
+                        return
+                else:
+                    other.hp -= self.damage
+                    print(f"스킬 폭발 피격: 몬스터 HP={other.hp}")
+                    if other.hp <= 0:
+                        other.alive = False
+                        game_world.move_object(other, 2)
+                        import round1
+                        if round1.current_room in round1.rooms:
+                            round1.rooms[round1.current_room]['num'] -= 1
 
-                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
-                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
+                        if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+
+                        if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
         elif group == 'skill:bullet' and (not self.is_active) and self.explosion_timer > 0 and self.should_show_mark:
             if hasattr(other, 'alive'):
                 other.alive = False
@@ -243,6 +252,7 @@ class SwordAfterimage:
         self.timer = self.duration
         self.is_alive = True
         self.damage = 30
+        self.hit_monsters = set()
 
         if abs(dir_x) > abs(dir_y):
             if dir_x > 0:
@@ -349,21 +359,28 @@ class SwordAfterimage:
 
     def handle_collision(self, group, other):
         if group == 'afterimage:monster' and self.is_alive:
-            if hasattr(other, 'hp') and getattr(other, 'alive', True):
-                other.hp -= self.damage
-                print(f"잔상 피격: 몬스터 HP={other.hp}")
-                if other.hp <= 0:
-                    other.alive = False
-                    game_world.move_object(other, 2)
-                    import round1
-                    if round1.current_room in round1.rooms:
-                        round1.rooms[round1.current_room]['num'] -= 1
+            if hasattr(other, 'hp') and getattr(other, 'alive', True) and other not in self.hit_monsters:
+                self.hit_monsters.add(other)
 
-                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
-                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+                from monster import Boss1
+                if isinstance(other, Boss1):
+                    if not other.take_damage(self.damage):
+                        return
+                else:
+                    other.hp -= self.damage
+                    print(f"잔상 피격: 몬스터 HP={other.hp}")
+                    if other.hp <= 0:
+                        other.alive = False
+                        game_world.move_object(other, 2)
+                        import round1
+                        if round1.current_room in round1.rooms:
+                            round1.rooms[round1.current_room]['num'] -= 1
 
-                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
-                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
+                        if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+
+                        if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
         elif group == 'afterimage:bullet' and self.is_alive:
             if hasattr(other, 'alive'):
                 other.alive = False
@@ -387,6 +404,7 @@ class AssassinSkill(Skill):
 
         self.swing_angle = 0
         self.afterimage = None  # 잔상
+        self.hit_monsters = set()
 
     def can_use(self):
         if self.afterimage and self.afterimage.is_alive:
@@ -399,6 +417,8 @@ class AssassinSkill(Skill):
 
         if self.skill_dir_x == 0 and self.skill_dir_y == 0:
             self.skill_dir_x = 1
+
+        self.hit_monsters.clear()
 
         afterimage_x = self.owner.x
         afterimage_y = self.owner.y
@@ -530,21 +550,28 @@ class AssassinSkill(Skill):
 
     def handle_collision(self, group, other):
         if group == 'skill:monster' and self.is_active:
-            if hasattr(other, 'hp') and getattr(other, 'alive', True):
-                other.hp -= self.damage
-                print(f"어쌔신 스킬 피격: 몬스터 HP={other.hp}")
-                if other.hp <= 0:
-                    other.alive = False
-                    game_world.move_object(other, 2)
-                    import round1
-                    if round1.current_room in round1.rooms:
-                        round1.rooms[round1.current_room]['num'] -= 1
+            if hasattr(other, 'hp') and getattr(other, 'alive', True) and other not in self.hit_monsters:
+                self.hit_monsters.add(other)
 
-                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
-                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+                from monster import Boss1
+                if isinstance(other, Boss1):
+                    if not other.take_damage(self.damage):
+                        return
+                else:
+                    other.hp -= self.damage
+                    print(f"어쌔신 스킬 피격: 몬스터 HP={other.hp}")
+                    if other.hp <= 0:
+                        other.alive = False
+                        game_world.move_object(other, 2)
+                        import round1
+                        if round1.current_room in round1.rooms:
+                            round1.rooms[round1.current_room]['num'] -= 1
 
-                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
-                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
+                        if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+
+                        if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
         elif group == 'skill:bullet' and self.is_active:
             if hasattr(other, 'alive'):
                 other.alive = False
@@ -577,6 +604,7 @@ class OfficerSkill(Skill):
 
         self.frame = 0
         self.total_frames = 6
+        self.hit_monsters = set()
 
     def can_use(self):
         return not self.is_active
@@ -588,6 +616,8 @@ class OfficerSkill(Skill):
 
         if self.skill_dir_x == 0 and self.skill_dir_y == 0:
             self.skill_dir_x = 1
+
+        self.hit_monsters.clear()
 
         self.start_x = self.owner.x
         self.start_y = self.owner.y
@@ -706,21 +736,28 @@ class OfficerSkill(Skill):
 
     def handle_collision(self, group, other):
         if group == 'skill:monster' and self.is_active:
-            if hasattr(other, 'hp') and getattr(other, 'alive', True):
-                other.hp -= self.damage
-                print(f"오피서 스킬 피격: 몬스터 HP={other.hp}")
-                if other.hp <= 0:
-                    other.alive = False
-                    game_world.move_object(other, 2)
-                    import round1
-                    if round1.current_room in round1.rooms:
-                        round1.rooms[round1.current_room]['num'] -= 1
+            if hasattr(other, 'hp') and getattr(other, 'alive', True) and other not in self.hit_monsters:
+                self.hit_monsters.add(other)
 
-                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
-                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+                from monster import Boss1
+                if isinstance(other, Boss1):
+                    if not other.take_damage(self.damage):
+                        return
+                else:
+                    other.hp -= self.damage
+                    print(f"오피서 스킬 피격: 몬스터 HP={other.hp}")
+                    if other.hp <= 0:
+                        other.alive = False
+                        game_world.move_object(other, 2)
+                        import round1
+                        if round1.current_room in round1.rooms:
+                            round1.rooms[round1.current_room]['num'] -= 1
 
-                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
-                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
+                        if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+
+                        if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
         elif group == 'skill:bullet' and self.is_active:
             if hasattr(other, 'alive'):
                 other.alive = False

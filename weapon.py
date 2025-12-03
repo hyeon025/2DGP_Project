@@ -135,17 +135,23 @@ class Weapon:
         if group == 'weapon:monster' and self.is_attacking:
             if hasattr(other, 'hp') and other not in self.hit_monsters:
                 self.hit_monsters.add(other)
-                other.hp -= self.damage
-                print(f"몬스터 공격, 몬스터 남은 HP: {other.hp}")
-                if other.hp <= 0:
-                    other.alive = False
-                    game_world.move_object(other, 2)
-                    game_world.collision_pairs['weapon:monster'][1].remove(other)
-                    round1.rooms[round1.current_room]['num'] -= 1
 
-                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
-                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.own)
+                from monster import Boss1
+                if isinstance(other, Boss1):
+                    if not other.take_damage(self.damage):
+                        return
+                else:
+                    other.hp -= self.damage
+                    print(f"몬스터 공격, 몬스터 남은 HP: {other.hp}")
+                    if other.hp <= 0:
+                        other.alive = False
+                        game_world.move_object(other, 2)
+                        game_world.collision_pairs['weapon:monster'][1].remove(other)
+                        round1.rooms[round1.current_room]['num'] -= 1
 
-                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
-                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.own)
+                        if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.own)
+
+                        if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.own)
 
