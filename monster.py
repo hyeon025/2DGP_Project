@@ -6,6 +6,7 @@ import game_framework
 import game_world
 from behavior_tree import BehaviorTree, Action, Sequence, Condition, Selector
 from bullet import Bomb
+import round1
 
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH = 10.0
@@ -25,7 +26,12 @@ _image_mode = None
 def load_collision_map():
     global _collision_data, _collision_width, _collision_height, _image_mode
 
-    if _collision_data is None:
+    if round1._collision_data is not None:
+        _collision_data = round1._collision_data
+        _collision_width = round1._collision_width
+        _collision_height = round1._collision_height
+        _image_mode = round1._image_mode
+    elif _collision_data is None:
         img = Image.open('asset/Map/round1_close_collision.png')
         _collision_data = img.load()
         _collision_width = img.width

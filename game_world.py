@@ -74,14 +74,13 @@ def collide(a, b):
 
     return True
 
-collision_pairs = {}#key : 충돌 종류, value : [[a],[b]]
+collision_pairs = {}
 def add_collision_pair(group, a, b):
     if group not in collision_pairs:
-        print('새로운 그룹 추가')
         collision_pairs[group] = [[],[]]
-    if a:
+    if a and a not in collision_pairs[group][0]:
         collision_pairs[group][0].append(a)
-    if b:
+    if b and b not in collision_pairs[group][1]:
         collision_pairs[group][1].append(b)
 
 

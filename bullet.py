@@ -82,6 +82,7 @@ class Bomb:
     def handle_collision(self, group, other):
         if group == 'bullet:player':
             self.alive = False
+            game_world.remove_object(self)
         elif group == 'weapon:bullet':
             self.alive = False
             game_world.remove_object(self)
@@ -167,6 +168,7 @@ class BulletStone:
     def handle_collision(self, group, other):
         if group == 'bullet:player':
             self.alive = False
+            game_world.remove_object(self)
         elif group == 'weapon:bullet':
             self.alive = False
             game_world.remove_object(self)
