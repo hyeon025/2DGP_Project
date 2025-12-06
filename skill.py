@@ -2,6 +2,7 @@ from pico2d import load_image, draw_rectangle
 import game_framework
 import game_world
 import math
+import random
 from PIL import Image
 
 
@@ -16,10 +17,8 @@ class Skill:
 
     def use(self):
         if self.is_active:
-            print("스킬이 이미 사용 중입니다.")
             return False
         if self.cooldown_timer > 0:
-            print(f"쿨타임 남음: {self.cooldown_timer:.1f}초")
             return False
         self.is_active = True
         self.cooldown_timer = self.cooldown
@@ -152,10 +151,8 @@ class AlchemistSkill(Skill):
 
         arc_offset = math.sin(progress * math.pi) * 50
         if abs(self.skill_dir_x) > abs(self.skill_dir_y):
-            # 좌우 이동
             self.throw_y += arc_offset
         else:
-            # 상하 이동
             self.throw_x += arc_offset * self.skill_dir_x if self.skill_dir_x != 0 else arc_offset
 
     def on_end(self):
@@ -228,6 +225,12 @@ class AlchemistSkill(Skill):
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
 
+                        if random.random() < 0.1:
+                            from hp import Heart
+                            heart = Heart(other.x, other.y)
+                            game_world.add_object(heart, 3)
+                            game_world.add_collision_pair('player:heart', None, heart)
+
                         if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
 
@@ -236,7 +239,6 @@ class AlchemistSkill(Skill):
         elif group == 'skill:bullet' and (not self.is_active) and self.explosion_timer > 0 and self.should_show_mark:
             if hasattr(other, 'alive'):
                 other.alive = False
-                print(f"총알 파괴")
 
 
 class SwordAfterimage:
@@ -381,6 +383,13 @@ class SwordAfterimage:
 
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
+
+                        # 10% 확률로 하트 드롭
+                        if random.random() < 0.1:
+                            from hp import Heart
+                            heart = Heart(other.x, other.y)
+                            game_world.add_object(heart, 3)
+                            game_world.add_collision_pair('player:heart', None, heart)
 
                         if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
@@ -576,6 +585,13 @@ class AssassinSkill(Skill):
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
 
+                        # 10% 확률로 하트 드롭
+                        if random.random() < 0.1:
+                            from hp import Heart
+                            heart = Heart(other.x, other.y)
+                            game_world.add_object(heart, 3)
+                            game_world.add_collision_pair('player:heart', None, heart)
+
                         if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
 
@@ -764,6 +780,13 @@ class OfficerSkill(Skill):
 
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
+
+                        # 10% 확률로 하트 드롭
+                        if random.random() < 0.1:
+                            from hp import Heart
+                            heart = Heart(other.x, other.y)
+                            game_world.add_object(heart, 3)
+                            game_world.add_collision_pair('player:heart', None, heart)
 
                         if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)

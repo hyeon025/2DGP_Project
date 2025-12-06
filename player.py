@@ -306,6 +306,10 @@ class Player:
                 self.invincible_timer = self.invincible_duration
         elif group == 'player:monster':
             pass
+        elif group == 'player:heart':
+            old_hp = self.hp
+            self.hp = min(200, self.hp + 20)
+            print(f"하트 획득! HP: {old_hp} -> {self.hp}")
 
     def take_monster_damage(self, damage):
         if not self.invincible:

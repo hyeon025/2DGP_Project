@@ -1,5 +1,7 @@
-from pico2d import load_image
+from pico2d import load_image, draw_rectangle
 import game_world
+import game_framework
+import random
 
 class PlayerHPBar:
     hp_images = None
@@ -21,6 +23,7 @@ class PlayerHPBar:
         pass
 
     def draw(self):
+        # 플레이어의 현재 HP를 실시간으로 반영
         hp_value = max(0, min(200, self.player.hp))
         hp_percentage = int((hp_value / 200) * 100)
         hp_rounded = (hp_percentage // 10) * 10
@@ -72,10 +75,60 @@ class BossHPBar:
         else:
             sx, sy = self.boss.x, hp_bar_y
 
-        BossHPBar.images[image_index].draw(sx, sy, 262, 34)
+        img = BossHPBar.images[image_index]
+        img_w = img.w
+        img_h = img.h
+
+        scale = 262 / img_w
+        display_h = img_h * scale
+
+        img.draw(sx, sy, 262, display_h)
 
     def get_bb(self):
         return 0, 0, 0, 0
 
     def handle_collision(self, group, other):
         pass
+
+class Heart:
+    image = None
+
+    def __init__(self, x, y):
+        if Heart.image is None:
+            Heart.image = load_image('asset/hp/hearts.png')
+        self.x = x
+        self.y = y
+        self.frame = 0
+        self.alive = True
+
+    def update(self):
+        self.frame = (self.frame + 4 * game_framework.frame_time) % 4
+
+    def draw(self):
+        cam = game_world.camera
+        if cam:
+            sx, sy = cam.to_camera(self.x, self.y)
+        else:
+            sx, sy = self.x, self.y
+
+        frame_index = int(self.frame)
+        Heart.image.clip_draw(frame_index * 20, 0, 20, 18, sx, sy, 40, 36)
+
+        if game_framework.show_bb:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
+
+    def get_bb(self):
+        if not self.alive:
+            return 0, 0, 0, 0
+        return self.x - 20, self.y - 18, self.x + 20, self.y + 18
+
+    def handle_collision(self, group, other):
+        if group == 'player:heart' and self.alive:
+            self.alive = False
+            game_world.remove_object(self)

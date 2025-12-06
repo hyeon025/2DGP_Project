@@ -2,6 +2,7 @@ from pico2d import load_image, draw_rectangle
 import game_framework
 import game_world
 import math
+import random
 
 import round1
 
@@ -149,9 +150,14 @@ class Weapon:
                         game_world.collision_pairs['weapon:monster'][1].remove(other)
                         round1.rooms[round1.current_room]['num'] -= 1
 
-                        # 코인 추가
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
+
+                        if random.random() < 0.1:
+                            from hp import Heart
+                            heart = Heart(other.x, other.y)
+                            game_world.add_object(heart, 3)
+                            game_world.add_collision_pair('player:heart', None, heart)
 
                         if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.own)
