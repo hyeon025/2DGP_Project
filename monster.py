@@ -546,7 +546,6 @@ class Boss1(Monster):
 
     def spawn_skeletons(self):
         boss_x, boss_y = self.x, self.y
-        print(f"Spawning 5 skeletons at boss position: ({boss_x}, {boss_y})")
 
         for i in range(5):
             skeleton = Skeleton(boss_x, boss_y, self.target)
@@ -642,14 +641,10 @@ class Boss1(Monster):
                 self.skeleton_spawn_timer = 0
 
         if self.target and not self.is_shooting_bomb:
-            cx, cy = self.get_center_pos()
-            dx = self.target.x - cx
-            dy = self.target.y - cy
-            dist = math.hypot(dx, dy)
+            self.bomb_timer += game_framework.frame_time
 
-            if dist > PIXEL_PER_METER * 3:
-                self.bomb_timer += game_framework.frame_time
-                if self.bomb_timer >= self.bomb_cooldown:
+            if self.bomb_timer >= self.bomb_cooldown:
+                if self.state != 'attack' or self.attack_finished:
                     self.is_shooting_bomb = True
                     self.state = 'idle'
                     self.dir_x = 0
@@ -657,8 +652,7 @@ class Boss1(Monster):
                     self.bomb_timer = 0
                     self.bomb_shoot_timer = 0
                     self.bomb_shoot_count = 0
-            else:
-                self.bomb_timer = 0
+                # 공격 중이면 타이머는 유지 (공격 끝나면 즉시 발사)
 
         if self.bt and not self.is_shooting_bomb:
             self.bt.run()
