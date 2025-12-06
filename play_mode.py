@@ -9,11 +9,27 @@ from particle import Particle , job_selec_atf
 import game_framework
 from camera import Camera
 from hp import PlayerHPBar
+from letter import Letter
 
 camera = Camera(world_w=5000, world_h=5000, screen_w=1200, screen_h=900)
 
+class CoinUI:
+    coin_count = 0
+
+    def __init__(self):
+        self.image = load_image('asset/UI/coin.png')
+        self.x = 1050
+        self.y = 850
+
+    def update(self):
+        pass
+
+    def draw(self):
+        self.image.draw(self.x, self.y, 40, 40)
+        Letter.draw_number(self.x + 40, self.y, CoinUI.coin_count, (255, 255, 255))
+
 def init():
-    global world, player, player_hp_bar
+    global world, player, player_hp_bar, coin_ui
     global job_selec_atf
 
     game_world.camera = camera
@@ -29,6 +45,9 @@ def init():
 
     player_hp_bar = PlayerHPBar(player)
     game_world.add_object(player_hp_bar, 5)
+
+    coin_ui = CoinUI()
+    game_world.add_object(coin_ui, 5)
 
     for x,y in [(300,340),(600,340),(900,340),(600,680)]:
         particles = Particle(x,y)

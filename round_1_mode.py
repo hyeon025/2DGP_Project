@@ -7,12 +7,28 @@ from player import Player
 from camera import Camera
 from hp import PlayerHPBar
 import round1
+from letter import Letter
 
 camera = Camera(world_w=5000 * 2, world_h=5000 * 2, screen_w=1200, screen_h=900)
 
+class CoinUI:
+    coin_count = 0
+
+    def __init__(self):
+        self.image = load_image('asset/UI/coin.png')
+        self.x = 1050
+        self.y = 850
+
+    def update(self):
+        pass
+
+    def draw(self):
+        self.image.draw(self.x, self.y, 40, 40)
+        Letter.draw_number(self.x + 40, self.y, CoinUI.coin_count, (255, 255, 255))
+
 
 def init():
-    global player, map_obj, player_hp_bar
+    global player, map_obj, player_hp_bar, coin_ui
 
     game_world.camera = camera
 
@@ -31,6 +47,9 @@ def init():
 
     player_hp_bar = PlayerHPBar(player)
     game_world.add_object(player_hp_bar, 5)
+
+    coin_ui = CoinUI()
+    game_world.add_object(coin_ui, 5)
 
     if player.weapon:
         game_world.add_collision_pair('weapon:monster', player.weapon, None)
@@ -69,6 +88,7 @@ def finish():
     globals().pop('player', None)
     globals().pop('map_obj', None)
     globals().pop('player_hp_bar', None)
+    globals().pop('coin_ui', None)
 
 def pause(): pass
 def resume(): pass
