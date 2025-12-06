@@ -276,9 +276,15 @@ class Skeleton(Monster):
         self.speed_factor = 0.7
 
     def build_behavior_tree(self):
-        from behavior_tree import BehaviorTree, Action
-        chase_node = Action('플레이어 추적', self.move_to_target)
-        return BehaviorTree(chase_node)
+
+        from behavior_tree import BehaviorTree, Action, Sequence, Condition, Selector
+
+        chase_node = Sequence('플레이어 추적',Condition('가까이 있는가?', self.is_target_nearby, 7),Action('타겟으로 이동', self.move_to_target))
+
+        wander_node = Sequence('랜덤 배회',Action('랜덤 위치 설정', self.set_random_target),Action('랜덤 위치로 이동', self.move_to_random_position))
+
+        root = Selector('스켈레톤 AI', chase_node, wander_node)
+        return BehaviorTree(root)
 
     def draw(self):
         cam = game_world.camera
@@ -540,12 +546,11 @@ class Boss1(Monster):
 
     def spawn_skeletons(self):
         boss_x, boss_y = self.x, self.y
-        print(f"Spawning skeletons at boss position: ({boss_x}, {boss_y})")
+        print(f"Spawning 5 skeletons at boss position: ({boss_x}, {boss_y})")
 
-        for i in range(3):
+        for i in range(5):
             skeleton = Skeleton(boss_x, boss_y, self.target)
             game_world.add_object(skeleton, 3)
-            print(f"Skeleton {i+1} spawned at ({boss_x}, {boss_y}), alive={skeleton.alive}")
 
             if self.target:
                 game_world.add_collision_pair('player:monster', self.target, skeleton)
