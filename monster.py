@@ -679,4 +679,4 @@ class Boss1(Monster):
                     if not (attack_left > player_right or attack_right < player_left or
                             attack_top < player_bottom or attack_bottom > player_top):
                         if hasattr(other, 'take_monster_damage'):
-                            other.take_monster_damage(20)
+                            other.take_monster_damage(40)
