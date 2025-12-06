@@ -340,6 +340,11 @@ class Boss1(Monster):
             self.state = 'idle'
             return BehaviorTree.FAIL
 
+        if self.state == 'attack' and not self.attack_finished:
+            self.dir_x = 0
+            self.dir_y = 0
+            return BehaviorTree.RUNNING
+
         if self.state != 'attack' or self.attack_finished:
             self.state = 'attack'
             self.attack_finished = False
@@ -482,14 +487,21 @@ class Boss1(Monster):
                 if hasattr(self.target, 'skill') and self.target.skill:
                     game_world.add_collision_pair('skill:bullet', self.target.skill, bomb)
 
+    def is_attacking(self):
+        if self.state == 'attack' and not self.attack_finished:
+            return BehaviorTree.SUCCESS
+        return BehaviorTree.FAIL
+
     def build_behavior_tree(self):
-        attack_node = Sequence('공격',Condition('공격 범위 안?', self.is_attack_range),Action('공격 실행', self.do_attack))
+        continue_attack_node = Sequence('공격 완료',Condition('공격 중?', self.is_attacking),Action('공격 실행', self.do_attack))
+
+        start_attack_node = Sequence('공격 시작',Condition('공격 범위 안?', self.is_attack_range),Action('공격 실행', self.do_attack))
 
         chase_node = Sequence('추적',Condition('감지 범위 안?', self.is_detection_range),Action('타겟으로 이동', self.move_to_target_boss))
 
         wander_node = Sequence('랜덤 배회',Action('랜덤 위치 설정', self.set_random_target_boss),Action('랜덤 위치로 이동', self.move_to_random_position_boss))
 
-        root = Selector('보스 AI',attack_node,chase_node,wander_node)
+        root = Selector('보스 AI',continue_attack_node,start_attack_node,chase_node,wander_node)
 
         return BehaviorTree(root)
 
