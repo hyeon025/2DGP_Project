@@ -75,6 +75,8 @@ class Bomb:
                 draw_rectangle(*self.get_bb())
 
     def get_bb(self):
+        if not self.alive:
+            return 0, 0, 0, 0
         return self.x - 16, self.y - 16, self.x + 16, self.y + 16
 
     def handle_collision(self, group, other):
@@ -158,6 +160,8 @@ class BulletStone:
                 draw_rectangle(*self.get_bb())
 
     def get_bb(self):
+        if not self.alive:
+            return 0, 0, 0, 0
         return self.x - 12, self.y - 12, self.x + 12, self.y + 12
 
     def handle_collision(self, group, other):

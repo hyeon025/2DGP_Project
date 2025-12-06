@@ -62,7 +62,6 @@ def spawn_monsters(room_num, player):
     for monster in monsters:
         game_world.remove_object(monster)
     monsters.clear()
-    # print(f"Cleared all previous monsters")
 
     if rooms[room_num]['type'] == 0 or rooms[room_num]['num'] == 0:
         return
@@ -81,7 +80,6 @@ def spawn_monsters(room_num, player):
         base_y = 3140 * 2
 
     elif room_num == 4:
-        # print(f"Boss1 spawning at room 4")
         base_x = 6040
         base_y = 5115
 

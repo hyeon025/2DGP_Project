@@ -302,7 +302,6 @@ class Player:
         elif group == 'bullet:player':
             if not self.invincible:
                 self.hp -= other.damage
-                print(f'bomb에 피격당함. HP: {self.hp}')
                 self.invincible = True
                 self.invincible_timer = self.invincible_duration
         elif group == 'player:monster':
@@ -311,18 +310,15 @@ class Player:
     def take_monster_damage(self, damage):
         if not self.invincible:
             self.hp -= damage
-            print(f'몬스터에게 피격당함. 데미지: {damage}, HP: {self.hp}')
             self.invincible = True
             self.invincible_timer = self.invincible_duration
 
     def use_skill(self):
         if self.skill:
             if self.skill.is_active:
-                print("스킬 사용중")
                 return
 
             if hasattr(self.skill, 'can_use') and not self.skill.can_use():
-                print("잔상 남아있음")
                 return
 
             if self.skill not in game_world.world[2]:
@@ -347,18 +343,15 @@ class Player:
             py = self.colliding_particle.y
 
             if px == 600 and py == 680:
-                print("1라운드 시작!")
                 game_map.current_map = "Round_1"
                 import importlib
                 try:
                     round_mode = importlib.import_module('round_1_mode')
                 except ImportError:
-                    print("round_1_mode 모듈을 찾을 수 없습니다.")
                     return
                 game_framework.change_mode(round_mode)
                 return
 
-            # 직업 선택 파티클
             if py == 340:
                 job_positions = {
                     300: "alchemist",
@@ -372,4 +365,3 @@ class Player:
                     if job_name in Player_job:
                         self.change_job(Player_job[job_name])
                         self.skill = create_skill(job_name,self)
-                        print(f"직업 변경: {job_name}")

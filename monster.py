@@ -141,6 +141,8 @@ class Monster:
                 other.take_monster_damage(10)
 
     def get_bb(self):
+        if not self.alive:
+            return 0, 0, 0, 0
         return self.x - self.size, self.y - self.size, self.x + self.size, self.y + self.size
 
     def distance_less_than(self, x1, y1, x2, y2, r):
@@ -274,6 +276,17 @@ class Skeleton(Monster):
             Skeleton.image = load_image('asset/Monster/skeleton.png')
         self.image = Skeleton.image
         self.speed_factor = 0.7
+        self.death_timer = 0
+        self.death_duration = 3.0
+
+    def update(self):
+        if not self.alive:
+            self.death_timer += game_framework.frame_time
+            if self.death_timer >= self.death_duration:
+                game_world.remove_object(self)
+                return
+        else:
+            super().update()
 
     def build_behavior_tree(self):
 
@@ -356,6 +369,8 @@ class Boss1(Monster):
         self.skeleton_spawn_delay = 2.0
         self.skeleton_spawn_timer = 0
         self.should_spawn_skeletons = False
+        self.max_skeletons = 8
+        self.spawned_skeletons = []
 
         super().__init__(x, y, hp=500, size=100, target=target)
 
@@ -545,11 +560,19 @@ class Boss1(Monster):
                     game_world.add_collision_pair('skill:bullet', self.target.skill, bomb)
 
     def spawn_skeletons(self):
+        self.spawned_skeletons = [s for s in self.spawned_skeletons if s.alive]
+
+        if len(self.spawned_skeletons) >= self.max_skeletons:
+            return
+
         boss_x, boss_y = self.x, self.y
 
-        for i in range(5):
+        spawn_count = min(5, self.max_skeletons - len(self.spawned_skeletons))
+
+        for i in range(spawn_count):
             skeleton = Skeleton(boss_x, boss_y, self.target)
             game_world.add_object(skeleton, 3)
+            self.spawned_skeletons.append(skeleton)
 
             if self.target:
                 game_world.add_collision_pair('player:monster', self.target, skeleton)
@@ -629,13 +652,11 @@ class Boss1(Monster):
                 # bomb 발사가 끝나면 스켈레톤 소환 타이머 시작
                 self.should_spawn_skeletons = True
                 self.skeleton_spawn_timer = 0
-                print("Bomb shooting finished, skeleton spawn timer started")
 
         # 스켈레톤 소환 로직
         if self.should_spawn_skeletons:
             self.skeleton_spawn_timer += game_framework.frame_time
             if self.skeleton_spawn_timer >= self.skeleton_spawn_delay:
-                print(f"Spawning 3 skeletons after {self.skeleton_spawn_delay} seconds")
                 self.spawn_skeletons()
                 self.should_spawn_skeletons = False
                 self.skeleton_spawn_timer = 0
@@ -652,7 +673,6 @@ class Boss1(Monster):
                     self.bomb_timer = 0
                     self.bomb_shoot_timer = 0
                     self.bomb_shoot_count = 0
-                # 공격 중이면 타이머는 유지 (공격 끝나면 즉시 발사)
 
         if self.bt and not self.is_shooting_bomb:
             self.bt.run()
@@ -722,13 +742,8 @@ class Boss1(Monster):
                 draw_circle(int(cx), int(cy), int(PIXEL_PER_METER * 7), 0, 255, 0)
 
     def get_bb(self):
-        # 공격 중이고 공격 프레임(8-11)일 때는 공격 히트박스 반환
-        if self.state == 'attack' and 8 <= int(self.frame) <= 11:
-            offset = self.face_dir * 80
-            return self.x - self.size + offset + 50, self.y - self.size - 50, self.x + self.size + offset - 50, self.y + self.size - 50
-        else:
-            # 일반 바운딩 박스
-            return self.x - 60, self.y - 150, self.x + 60, self.y + 20
+        # 플레이어의 공격을 받기 위한 보스의 몸체 바운딩 박스 (항상 일정)
+        return self.x - 60, self.y - 150, self.x + 60, self.y + 20
 
     def get_attack_bb(self):
         if self.state == 'attack' and 8 <= int(self.frame) <= 11:
@@ -746,7 +761,6 @@ class Boss1(Monster):
 
         self.hp -= damage
         self.hit_cooldown_timer = self.hit_cooldown
-        print(f"보스 피격! 데미지: {damage}, 남은 HP: {self.hp}")
 
         if self.hp <= 0:
             self.alive = False
@@ -767,7 +781,14 @@ class Boss1(Monster):
 
     def handle_collision(self, group, other):
         if group == 'player:monster' and self.alive:
-            # 공격 프레임일 때만 데미지 입힘 (get_bb()가 이미 공격 히트박스를 반환함)
+
             if self.state == 'attack' and 8 <= int(self.frame) <= 11:
-                if hasattr(other, 'take_monster_damage'):
-                    other.take_monster_damage(40)
+                attack_left, attack_bottom, attack_right, attack_top = self.get_attack_bb()
+                if attack_left != attack_right and attack_bottom != attack_top:
+
+                    player_left, player_bottom, player_right, player_top = other.get_bb()
+
+                    if not (attack_left > player_right or attack_right < player_left or
+                            attack_top < player_bottom or attack_bottom > player_top):
+                        if hasattr(other, 'take_monster_damage'):
+                            other.take_monster_damage(40)
