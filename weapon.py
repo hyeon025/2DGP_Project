@@ -47,7 +47,6 @@ class Weapon:
             if self.attack_dir_x == 0 and self.attack_dir_y == 0:
                 self.attack_dir_x = 1
 
-            print(f"공격, 데미지: {self.damage}, 방향: ({self.attack_dir_x}, {self.attack_dir_y})")
         pass
 
     def update(self):
@@ -153,7 +152,8 @@ class Weapon:
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
 
-                        if random.random() < 0.1:
+                        rand_val = random.random()
+                        if rand_val < 0.1:
                             from hp import Heart
                             heart = Heart(other.x, other.y)
                             game_world.add_object(heart, 3)

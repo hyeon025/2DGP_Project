@@ -225,7 +225,8 @@ class AlchemistSkill(Skill):
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
 
-                        if random.random() < 0.1:
+                        rand_val = random.random()
+                        if rand_val < 0.1:
                             from hp import Heart
                             heart = Heart(other.x, other.y)
                             game_world.add_object(heart, 3)

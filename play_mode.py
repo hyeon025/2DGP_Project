@@ -10,6 +10,7 @@ import game_framework
 from camera import Camera
 from hp import PlayerHPBar
 from letter import Letter
+from level import LevelUI
 
 camera = Camera(world_w=5000, world_h=5000, screen_w=1200, screen_h=900)
 
@@ -29,7 +30,7 @@ class CoinUI:
         Letter.draw_number(self.x + 40, self.y, CoinUI.coin_count, (255, 255, 255))
 
 def init():
-    global world, player, player_hp_bar, coin_ui
+    global world, player, player_hp_bar, coin_ui, level_ui
     global job_selec_atf
 
     game_world.camera = camera
@@ -48,6 +49,9 @@ def init():
 
     coin_ui = CoinUI()
     game_world.add_object(coin_ui, 5)
+
+    level_ui = LevelUI()
+    game_world.add_object(level_ui, 5)
 
     for x,y in [(300,340),(600,340),(900,340),(600,680)]:
         particles = Particle(x,y)
