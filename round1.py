@@ -5,7 +5,7 @@ from PIL import Image
 import game_framework
 import game_world
 from monster import Monster, AngryEggMonster, EggMonster, Boss1
-from hp import BossHPBar
+from hp import BossHPBar, MonsterHPBar
 
 _background_cache = {}
 
@@ -114,6 +114,9 @@ def spawn_monsters(room_num, player):
             monsters.append(monster)
             game_world.add_object(monster, 3)
             game_world.add_collision_pair('player:monster', player, monster)
+
+            monster_hp_bar = MonsterHPBar(monster)
+            game_world.add_object(monster_hp_bar, 5)
 
             if player.weapon:
                 game_world.add_collision_pair('weapon:monster', player.weapon, monster)

@@ -90,6 +90,56 @@ class BossHPBar:
     def handle_collision(self, group, other):
         pass
 
+class MonsterHPBar:
+    images = None
+
+    def __init__(self, monster):
+        self.monster = monster
+        self.max_hp = monster.hp
+
+        if MonsterHPBar.images is None:
+            MonsterHPBar.images = []
+            for i in range(51):
+                img = load_image(f'asset/hp/monster/{i}.png')
+                MonsterHPBar.images.append(img)
+
+    def update(self):
+        if not self.monster.alive:
+            game_world.remove_object(self)
+
+    def draw(self):
+        if not self.monster.alive:
+            return
+
+        cam = game_world.camera
+
+        hp_ratio = max(0, min(1, self.monster.hp / self.max_hp))
+        image_index = int((1 - hp_ratio) * 50)
+        image_index = max(0, min(50, image_index))
+
+        hp_bar_y = self.monster.y + 30
+
+        if cam:
+            sx, sy = cam.to_camera(self.monster.x, hp_bar_y)
+        else:
+            sx, sy = self.monster.x, hp_bar_y
+
+        img = MonsterHPBar.images[image_index]
+        img_w = img.w
+        img_h = img.h
+
+        display_w = 60
+        scale = display_w / img_w
+        display_h = img_h * scale
+
+        img.draw(sx, sy, display_w, display_h)
+
+    def get_bb(self):
+        return 0, 0, 0, 0
+
+    def handle_collision(self, group, other):
+        pass
+
 class Heart:
     image = None
 
