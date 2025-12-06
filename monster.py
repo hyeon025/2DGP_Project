@@ -779,6 +779,9 @@ class Boss1(Monster):
                     round1.change_map('asset/Map/round1_map.png',
                                     'asset/Map/round1_collision.png', 4, self.target)
 
+            from round_1_mode import CoinUI
+            CoinUI.coin_count += 100
+
             from particle import BossDeathParticle
             boss_particle = BossDeathParticle(6040,5115)
             game_world.add_object(boss_particle, 3)

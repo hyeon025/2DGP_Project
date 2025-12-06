@@ -225,6 +225,9 @@ class AlchemistSkill(Skill):
                         if round1.current_room in round1.rooms:
                             round1.rooms[round1.current_room]['num'] -= 1
 
+                        from round_1_mode import CoinUI
+                        CoinUI.coin_count += 1
+
                         if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
 
@@ -375,6 +378,9 @@ class SwordAfterimage:
                         import round1
                         if round1.current_room in round1.rooms:
                             round1.rooms[round1.current_room]['num'] -= 1
+
+                        from round_1_mode import CoinUI
+                        CoinUI.coin_count += 1
 
                         if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
@@ -567,6 +573,9 @@ class AssassinSkill(Skill):
                         if round1.current_room in round1.rooms:
                             round1.rooms[round1.current_room]['num'] -= 1
 
+                        from round_1_mode import CoinUI
+                        CoinUI.coin_count += 1
+
                         if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
 
@@ -752,6 +761,9 @@ class OfficerSkill(Skill):
                         import round1
                         if round1.current_room in round1.rooms:
                             round1.rooms[round1.current_room]['num'] -= 1
+
+                        from round_1_mode import CoinUI
+                        CoinUI.coin_count += 1
 
                         if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)

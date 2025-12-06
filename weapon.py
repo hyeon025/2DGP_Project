@@ -149,6 +149,10 @@ class Weapon:
                         game_world.collision_pairs['weapon:monster'][1].remove(other)
                         round1.rooms[round1.current_room]['num'] -= 1
 
+                        # 코인 추가
+                        from round_1_mode import CoinUI
+                        CoinUI.coin_count += 1
+
                         if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.own)
 
