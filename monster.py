@@ -658,6 +658,10 @@ class Boss1(Monster):
             if round1.current_room in round1.rooms:
                 round1.rooms[round1.current_room]['num'] -= 1
 
+                if round1.current_room == 4 and round1.rooms[4]['num'] == 0:
+                    round1.change_map('asset/Map/round1_map.png',
+                                    'asset/Map/round1_collision.png', 4, self.target)
+
             from particle import BossDeathParticle
             boss_particle = BossDeathParticle(6040,5115)
             game_world.add_object(boss_particle, 3)
@@ -667,5 +671,12 @@ class Boss1(Monster):
     def handle_collision(self, group, other):
         if group == 'player:monster' and self.alive:
             if self.state == 'attack' and 8 <= int(self.frame) <= 11:
-                if hasattr(other, 'take_monster_damage'):
-                    other.take_monster_damage(20)
+
+                attack_left, attack_bottom, attack_right, attack_top = self.get_attack_bb()
+                if attack_left != attack_right and attack_bottom != attack_top:  # 유효한 공격 범위인지 확인
+                    player_left, player_bottom, player_right, player_top = other.get_bb()
+
+                    if not (attack_left > player_right or attack_right < player_left or
+                            attack_top < player_bottom or attack_bottom > player_top):
+                        if hasattr(other, 'take_monster_damage'):
+                            other.take_monster_damage(20)
