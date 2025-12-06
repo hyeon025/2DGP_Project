@@ -1,4 +1,4 @@
-from pico2d import load_image , get_time, draw_rectangle
+from pico2d import load_image , get_time, draw_rectangle, draw_circle
 from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s, SDLK_SPACE, SDL_MOUSEBUTTONDOWN, \
     SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT
 
@@ -268,17 +268,18 @@ class Player:
                 sl, sb = game_world.camera.to_camera(l, b)
                 sr, st = game_world.camera.to_camera(r, t)
                 draw_rectangle(sl, sb, sr, st)
+
+                px, py = game_world.camera.to_camera(self.x, self.y)
+                draw_circle(int(px), int(py), int(PIXEL_PER_METER * 7), 255, 255, 0)
             else:
                 draw_rectangle(*self.get_bb())
+                draw_circle(int(self.x), int(self.y), int(PIXEL_PER_METER * 7), 255, 255, 0)
 
     def update(self):
         self.state_machine.update()
 
         if self.weapon:
             self.weapon.update()
-
-        # if self.skill:
-        #     self.skill.update()
 
         if self.invincible_timer > 0:
             self.invincible_timer -= game_framework.frame_time

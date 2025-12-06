@@ -86,13 +86,12 @@ def spawn_monsters(room_num, player):
         base_y = 5115
 
         boss = Boss1(base_x, base_y, player)
-        # print(f"Boss1 created at ({base_x}, {base_y}), Player at ({player.x}, {player.y})")
         monsters.append(boss)
-        game_world.add_object(boss, 3)
+        game_world.add_object(boss, 4)
         game_world.add_collision_pair('player:monster', player, boss)
 
         boss_hp_bar = BossHPBar(boss)
-        game_world.add_object(boss_hp_bar, 4)
+        game_world.add_object(boss_hp_bar, 5)
 
         if player.weapon:
             game_world.add_collision_pair('weapon:monster', player.weapon, boss)
@@ -100,7 +99,6 @@ def spawn_monsters(room_num, player):
         if player.skill:
             game_world.add_collision_pair('skill:monster', player.skill, boss)
 
-        # print(f"Boss1 스폰. Total monsters: {len(monsters)}")
         return
 
     for monster_type, count in current_monster_counts.items():

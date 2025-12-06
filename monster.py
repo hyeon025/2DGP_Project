@@ -265,6 +265,53 @@ class AngryEggMonster(Monster):
         self.image = AngryEggMonster.image
         self.speed_factor = 1.0
 
+class Skeleton(Monster):
+    image = None
+
+    def __init__(self, x, y, target=None):
+        super().__init__(x, y, hp=30, size=20, target=target)
+        if Skeleton.image is None:
+            Skeleton.image = load_image('asset/Monster/skeleton.png')
+        self.image = Skeleton.image
+        self.speed_factor = 0.7
+
+    def build_behavior_tree(self):
+        from behavior_tree import BehaviorTree, Action
+        chase_node = Action('플레이어 추적', self.move_to_target)
+        return BehaviorTree(chase_node)
+
+    def draw(self):
+        cam = game_world.camera
+        if cam:
+            sx, sy = cam.to_camera(self.x, self.y)
+        else:
+            sx, sy = self.x, self.y
+
+        if self.alive:
+            frame_col = int(self.frame) % 4
+            sprite_x = frame_col * 32
+            sprite_y = 32 * 3
+
+            if self.face_dir == 1:
+                self.image.clip_draw(sprite_x, sprite_y, 32, 32, sx, sy, 60, 60)
+            else:
+                self.image.clip_composite_draw(sprite_x, sprite_y, 32, 32, 0, 'h', sx, sy, 60, 60)
+        else:
+            sprite_y = 32
+            if self.face_dir == 1:
+                self.image.clip_draw(0, sprite_y, 32, 32, sx, sy, 60, 60)
+            else:
+                self.image.clip_composite_draw(0, sprite_y, 32, 32, 0, 'h', sx, sy, 60, 60)
+
+        if game_framework.show_bb and self.alive:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
+
 class Boss1(Monster):
     walk_image = None
     idle_image = None
@@ -299,6 +346,10 @@ class Boss1(Monster):
 
         self.hit_cooldown = 0.3
         self.hit_cooldown_timer = 0
+
+        self.skeleton_spawn_delay = 2.0
+        self.skeleton_spawn_timer = 0
+        self.should_spawn_skeletons = False
 
         super().__init__(x, y, hp=500, size=100, target=target)
 
@@ -487,6 +538,22 @@ class Boss1(Monster):
                 if hasattr(self.target, 'skill') and self.target.skill:
                     game_world.add_collision_pair('skill:bullet', self.target.skill, bomb)
 
+    def spawn_skeletons(self):
+        boss_x, boss_y = self.x, self.y
+        print(f"Spawning skeletons at boss position: ({boss_x}, {boss_y})")
+
+        for i in range(3):
+            skeleton = Skeleton(boss_x, boss_y, self.target)
+            game_world.add_object(skeleton, 3)
+            print(f"Skeleton {i+1} spawned at ({boss_x}, {boss_y}), alive={skeleton.alive}")
+
+            if self.target:
+                game_world.add_collision_pair('player:monster', self.target, skeleton)
+                if hasattr(self.target, 'weapon') and self.target.weapon:
+                    game_world.add_collision_pair('weapon:monster', self.target.weapon, skeleton)
+                if hasattr(self.target, 'skill') and self.target.skill:
+                    game_world.add_collision_pair('skill:monster', self.target.skill, skeleton)
+
     def is_attacking(self):
         if self.state == 'attack' and not self.attack_finished:
             return BehaviorTree.SUCCESS
@@ -555,6 +622,19 @@ class Boss1(Monster):
                 self.is_shooting_bomb = False
                 self.bomb_shoot_timer = 0
                 self.bomb_shoot_count = 0
+                # bomb 발사가 끝나면 스켈레톤 소환 타이머 시작
+                self.should_spawn_skeletons = True
+                self.skeleton_spawn_timer = 0
+                print("Bomb shooting finished, skeleton spawn timer started")
+
+        # 스켈레톤 소환 로직
+        if self.should_spawn_skeletons:
+            self.skeleton_spawn_timer += game_framework.frame_time
+            if self.skeleton_spawn_timer >= self.skeleton_spawn_delay:
+                print(f"Spawning 3 skeletons after {self.skeleton_spawn_delay} seconds")
+                self.spawn_skeletons()
+                self.should_spawn_skeletons = False
+                self.skeleton_spawn_timer = 0
 
         if self.target and not self.is_shooting_bomb:
             cx, cy = self.get_center_pos()
@@ -643,7 +723,13 @@ class Boss1(Monster):
                 draw_circle(int(cx), int(cy), int(PIXEL_PER_METER * 7), 0, 255, 0)
 
     def get_bb(self):
-        return self.x - 60, self.y - 150, self.x + 60, self.y + 20
+        # 공격 중이고 공격 프레임(8-11)일 때는 공격 히트박스 반환
+        if self.state == 'attack' and 8 <= int(self.frame) <= 11:
+            offset = self.face_dir * 80
+            return self.x - self.size + offset + 50, self.y - self.size - 50, self.x + self.size + offset - 50, self.y + self.size - 50
+        else:
+            # 일반 바운딩 박스
+            return self.x - 60, self.y - 150, self.x + 60, self.y + 20
 
     def get_attack_bb(self):
         if self.state == 'attack' and 8 <= int(self.frame) <= 11:
@@ -682,13 +768,7 @@ class Boss1(Monster):
 
     def handle_collision(self, group, other):
         if group == 'player:monster' and self.alive:
+            # 공격 프레임일 때만 데미지 입힘 (get_bb()가 이미 공격 히트박스를 반환함)
             if self.state == 'attack' and 8 <= int(self.frame) <= 11:
-
-                attack_left, attack_bottom, attack_right, attack_top = self.get_attack_bb()
-                if attack_left != attack_right and attack_bottom != attack_top:  # 유효한 공격 범위인지 확인
-                    player_left, player_bottom, player_right, player_top = other.get_bb()
-
-                    if not (attack_left > player_right or attack_right < player_left or
-                            attack_top < player_bottom or attack_bottom > player_top):
-                        if hasattr(other, 'take_monster_damage'):
-                            other.take_monster_damage(40)
+                if hasattr(other, 'take_monster_damage'):
+                    other.take_monster_damage(40)
