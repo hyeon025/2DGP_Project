@@ -252,6 +252,59 @@ class Monster:
 
 
 
+class Slime(Monster):
+    image = None
+
+    def __init__(self, x, y, target=None):
+        super().__init__(x, y, hp=60, size=30, target=target)
+        if Slime.image is None:
+            Slime.image = load_image('asset/Monster/slime.png')
+        self.image = Slime.image
+        self.size = 30
+        self.speed_factor = 0.5
+        self.frame_per_action = 3
+
+    def update(self):
+        if not self.alive:
+            for layer in game_world.world:
+                if self in layer:
+                    game_world.remove_object(self)
+                    break
+            return
+
+        self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time * 0.5) % 12
+
+        if self.bt:
+            self.bt.run()
+
+    def draw(self):
+        cam = game_world.camera
+        if cam:
+            sx, sy = cam.to_camera(self.x, self.y)
+        else:
+            sx, sy = self.x, self.y
+
+        if self.alive:
+            frame_col = int(self.frame) % 4
+            frame_row = int(self.frame) // 4
+
+            sprite_x = frame_col * 128
+            sprite_y = (3 - frame_row) * 128
+
+            if self.face_dir == 1:
+                self.image.clip_composite_draw(sprite_x, sprite_y, 128, 128, 0, 'h', sx, sy, 80, 80)
+            else:
+                self.image.clip_draw(sprite_x, sprite_y, 128, 128, sx, sy, 80, 80)
+
+        if game_framework.show_bb and self.alive:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
+
 class EggMonster(Monster):
     image = None
 
@@ -318,15 +371,15 @@ class Skeleton(Monster):
             sprite_y = 32 * 3
 
             if self.face_dir == 1:
-                self.image.clip_draw(sprite_x, sprite_y, 32, 32, sx, sy, 60, 60)
+                self.image.clip_draw(sprite_x, sprite_y, 32, 32, sx, sy, 80, 80)
             else:
-                self.image.clip_composite_draw(sprite_x, sprite_y, 32, 32, 0, 'h', sx, sy, 60, 60)
+                self.image.clip_composite_draw(sprite_x, sprite_y, 32, 32, 0, 'h', sx, sy, 80, 80)
         else:
             sprite_y = 32
             if self.face_dir == 1:
-                self.image.clip_draw(0, sprite_y, 32, 32, sx, sy, 60, 60)
+                self.image.clip_draw(0, sprite_y, 32, 32, sx, sy, 80, 80)
             else:
-                self.image.clip_composite_draw(0, sprite_y, 32, 32, 0, 'h', sx, sy, 60, 60)
+                self.image.clip_composite_draw(0, sprite_y, 32, 32, 0, 'h', sx, sy, 80, 80)
 
         if game_framework.show_bb and self.alive:
             if cam:

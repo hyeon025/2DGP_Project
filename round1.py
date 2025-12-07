@@ -4,13 +4,13 @@ from pico2d import load_image, delay
 from PIL import Image
 import game_framework
 import game_world
-from monster import Monster, AngryEggMonster, EggMonster, Boss1
+from monster import Monster, AngryEggMonster, EggMonster, Boss1, Slime
 from hp import BossHPBar, MonsterHPBar
 
 _background_cache = {}
 
 rooms = {
-    1: {'type': 1, 'num': 10, 'entered': False},
+    1: {'type': 1, 'num': 23, 'entered': False},  # Egg(10) + AngryEgg(10) + Slime(3)
     2: {'type': 1, 'num': 14, 'entered': False},
     3: {'type': 3, 'num': 0, 'entered': False},
     4: {'type': 2, 'num': 1, 'entered': False},
@@ -60,7 +60,10 @@ def spawn_monsters(room_num, player):
     global monsters
 
     for monster in monsters:
-        game_world.remove_object(monster)
+        for layer in game_world.world:
+            if monster in layer:
+                game_world.remove_object(monster)
+                break
     monsters.clear()
 
     if rooms[room_num]['type'] == 0 or rooms[room_num]['num'] == 0:
@@ -70,7 +73,7 @@ def spawn_monsters(room_num, player):
     monster_type = rooms[room_num]['type']
 
     if room_num == 1:
-        current_monster_counts = {1: 4, 2: 6}
+        current_monster_counts = {1: 10, 2: 10, 3: 3}  # 1 = Egg, 2 = AngryEgg, 3 = Slime
         base_x = 1960 * 2
         base_y = 2450 * 2
 
@@ -108,6 +111,8 @@ def spawn_monsters(room_num, player):
                 monster = EggMonster(spawn_x, spawn_y, player)
             elif monster_type == 2:
                 monster = AngryEggMonster(spawn_x, spawn_y, player)
+            elif monster_type == 3:
+                monster = Slime(spawn_x, spawn_y, player)
             else:
                 continue
 
@@ -239,21 +244,27 @@ def round1Collision(player):
 
             elif r == 0 and g == 0 and b == 255:
                 #4번방 입장
-                print(f"Blue pixel detected - Room 4 entrance")
                 if not rooms[4]['entered']:
-                    print(f"Room 4 first entry")
                     rooms[4]['entered'] = True
                     if rooms[4]['num'] > 0:
-                        print(f"Room 4 has monsters, closing map")
                         change_map('asset/Map/round1_close_map.png',
                                    'asset/Map/round1_close_collision.png', 4, player)
                         spawn_monsters(4, player)
                     else:
-                        print(f"Room 4 has no monsters")
                         change_map('asset/Map/round1_map.png',
                                'asset/Map/round1_collision.png', 4, player)
 
-
+            elif r == 255 and g == 255 and b == 255:
+                #3번방 입장
+                if not rooms[3]['entered']:
+                    rooms[3]['entered'] = True
+                    if rooms[3]['num'] > 0:
+                        change_map('asset/Map/round1_close_map.png',
+                                   'asset/Map/round1_close_collision.png', 3, player)
+                        # spawn_monsters(3, player)
+                    else:
+                        change_map('asset/Map/round1_map.png',
+                                   'asset/Map/round1_collision.png', 3, player)
 
 
 
