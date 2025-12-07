@@ -256,11 +256,11 @@ class Slime(Monster):
     image = None
 
     def __init__(self, x, y, target=None):
-        super().__init__(x, y, hp=60, size=30, target=target)
+        super().__init__(x, y, hp=60, size=35, target=target)
         if Slime.image is None:
             Slime.image = load_image('asset/Monster/slime.png')
         self.image = Slime.image
-        self.size = 30
+        self.size = 35
         self.speed_factor = 0.5
         self.frame_per_action = 3
         self.shoot_cooldown = 3.0
@@ -296,6 +296,11 @@ class Slime(Monster):
                 game_world.add_collision_pair('weapon:bullet', self.target.weapon, bomb)
             if hasattr(self.target, 'skill') and self.target.skill:
                 game_world.add_collision_pair('skill:bullet', self.target.skill, bomb)
+
+    def get_bb(self):
+        if not self.alive:
+            return 0, 0, 0, 0
+        return self.x - 30, self.y - 20, self.x + 30, self.y + 20
 
     def draw(self):
         cam = game_world.camera
