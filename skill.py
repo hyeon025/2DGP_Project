@@ -226,7 +226,8 @@ class AlchemistSkill(Skill):
                         CoinUI.coin_count += 1
 
                         from level import LevelUI
-                        LevelUI.add_exp(2)
+                        level_ui = LevelUI()
+                        level_ui.add_exp(2)
 
                         rand_val = random.random()
                         if rand_val < 0.1:
@@ -389,7 +390,8 @@ class SwordAfterimage:
                         CoinUI.coin_count += 1
 
                         from level import LevelUI
-                        LevelUI.add_exp(2)
+                        level_ui = LevelUI()
+                        level_ui.add_exp(2)
 
                         if random.random() < 0.1:
                             from hp import Heart
@@ -591,7 +593,8 @@ class AssassinSkill(Skill):
                         CoinUI.coin_count += 1
 
                         from level import LevelUI
-                        LevelUI.add_exp(2)
+                        level_ui = LevelUI()
+                        level_ui.add_exp(2)
 
                         if random.random() < 0.1:
                             from hp import Heart
@@ -787,7 +790,8 @@ class OfficerSkill(Skill):
                         CoinUI.coin_count += 1
 
                         from level import LevelUI
-                        LevelUI.add_exp(2)
+                        level_ui = LevelUI()
+                        level_ui.add_exp(2)
 
                         if random.random() < 0.1:
                             from hp import Heart

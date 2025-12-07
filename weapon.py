@@ -142,7 +142,6 @@ class Weapon:
                         return
                 else:
                     other.hp -= self.damage
-                    print(f"몬스터 공격, 몬스터 남은 HP: {other.hp}")
                     if other.hp <= 0:
                         other.alive = False
                         game_world.move_object(other, 2)
@@ -153,7 +152,8 @@ class Weapon:
                         CoinUI.coin_count += 1
 
                         from level import LevelUI
-                        LevelUI.add_exp(2)
+                        level_ui = LevelUI()
+                        level_ui.add_exp(2)
 
                         rand_val = random.random()
                         if rand_val < 0.1:
