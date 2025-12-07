@@ -782,6 +782,9 @@ class Boss1(Monster):
             from round_1_mode import CoinUI
             CoinUI.coin_count += 100
 
+            from level import LevelUI
+            LevelUI.add_exp(60)
+
             from particle import BossDeathParticle
             boss_particle = BossDeathParticle(6040,5115)
             game_world.add_object(boss_particle, 3)

@@ -225,6 +225,9 @@ class AlchemistSkill(Skill):
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
 
+                        from level import LevelUI
+                        LevelUI.add_exp(2)
+
                         rand_val = random.random()
                         if rand_val < 0.1:
                             from hp import Heart
@@ -385,7 +388,9 @@ class SwordAfterimage:
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
 
-                        # 10% 확률로 하트 드롭
+                        from level import LevelUI
+                        LevelUI.add_exp(2)
+
                         if random.random() < 0.1:
                             from hp import Heart
                             heart = Heart(other.x, other.y)
@@ -575,7 +580,6 @@ class AssassinSkill(Skill):
                         return
                 else:
                     other.hp -= self.damage
-                    print(f"어쌔신 스킬 피격: 몬스터 HP={other.hp}")
                     if other.hp <= 0:
                         other.alive = False
                         game_world.move_object(other, 2)
@@ -586,7 +590,9 @@ class AssassinSkill(Skill):
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
 
-                        # 10% 확률로 하트 드롭
+                        from level import LevelUI
+                        LevelUI.add_exp(2)
+
                         if random.random() < 0.1:
                             from hp import Heart
                             heart = Heart(other.x, other.y)
@@ -601,7 +607,6 @@ class AssassinSkill(Skill):
         elif group == 'skill:bullet' and self.is_active:
             if hasattr(other, 'alive'):
                 other.alive = False
-                print(f"총알 파괴")
 
 
 class OfficerSkill(Skill):
@@ -771,7 +776,6 @@ class OfficerSkill(Skill):
                         return
                 else:
                     other.hp -= self.damage
-                    print(f"오피서 스킬 피격: 몬스터 HP={other.hp}")
                     if other.hp <= 0:
                         other.alive = False
                         game_world.move_object(other, 2)
@@ -782,7 +786,9 @@ class OfficerSkill(Skill):
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
 
-                        # 10% 확률로 하트 드롭
+                        from level import LevelUI
+                        LevelUI.add_exp(2)
+
                         if random.random() < 0.1:
                             from hp import Heart
                             heart = Heart(other.x, other.y)
@@ -797,7 +803,6 @@ class OfficerSkill(Skill):
         elif group == 'skill:bullet' and self.is_active:
             if hasattr(other, 'alive'):
                 other.alive = False
-                print(f"총알 파괴")
 
 def create_skill(job_name,owner):
     skill_map = {
@@ -809,5 +814,4 @@ def create_skill(job_name,owner):
     if skill_class:
         return skill_class(owner)
     else:
-        print(f"없는 직업: {job_name}")
         return None

@@ -152,6 +152,9 @@ class Weapon:
                         from round_1_mode import CoinUI
                         CoinUI.coin_count += 1
 
+                        from level import LevelUI
+                        LevelUI.add_exp(2)
+
                         rand_val = random.random()
                         if rand_val < 0.1:
                             from hp import Heart
