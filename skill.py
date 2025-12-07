@@ -223,11 +223,20 @@ class AlchemistSkill(Skill):
                             round1.rooms[round1.current_room]['num'] -= 1
 
                         from round_1_mode import CoinUI
-                        CoinUI.coin_count += 1
-
                         from level import LevelUI
+                        from monster import Slime, AngryEggMonster
+
                         level_ui = LevelUI()
-                        level_ui.add_exp(2)
+
+                        if isinstance(other, Slime):
+                            CoinUI.coin_count += 20
+                            level_ui.add_exp(5)
+                        elif isinstance(other, AngryEggMonster):
+                            CoinUI.coin_count += 2
+                            level_ui.add_exp(2)
+                        else:
+                            CoinUI.coin_count += 1
+                            level_ui.add_exp(2)
 
                         rand_val = random.random()
                         if rand_val < 0.1:
@@ -387,11 +396,20 @@ class SwordAfterimage:
                             round1.rooms[round1.current_room]['num'] -= 1
 
                         from round_1_mode import CoinUI
-                        CoinUI.coin_count += 1
-
                         from level import LevelUI
+                        from monster import Slime, AngryEggMonster
+
                         level_ui = LevelUI()
-                        level_ui.add_exp(2)
+
+                        if isinstance(other, Slime):
+                            CoinUI.coin_count += 20
+                            level_ui.add_exp(5)
+                        elif isinstance(other, AngryEggMonster):
+                            CoinUI.coin_count += 2
+                            level_ui.add_exp(2)
+                        else:
+                            CoinUI.coin_count += 1
+                            level_ui.add_exp(2)
 
                         if random.random() < 0.1:
                             from hp import Heart
@@ -590,11 +608,20 @@ class AssassinSkill(Skill):
                             round1.rooms[round1.current_room]['num'] -= 1
 
                         from round_1_mode import CoinUI
-                        CoinUI.coin_count += 1
-
                         from level import LevelUI
+                        from monster import Slime, AngryEggMonster
+
                         level_ui = LevelUI()
-                        level_ui.add_exp(2)
+
+                        if isinstance(other, Slime):
+                            CoinUI.coin_count += 20
+                            level_ui.add_exp(5)
+                        elif isinstance(other, AngryEggMonster):
+                            CoinUI.coin_count += 2
+                            level_ui.add_exp(2)
+                        else:
+                            CoinUI.coin_count += 1
+                            level_ui.add_exp(2)
 
                         if random.random() < 0.1:
                             from hp import Heart
@@ -787,11 +814,20 @@ class OfficerSkill(Skill):
                             round1.rooms[round1.current_room]['num'] -= 1
 
                         from round_1_mode import CoinUI
-                        CoinUI.coin_count += 1
-
                         from level import LevelUI
+                        from monster import Slime, AngryEggMonster
+
                         level_ui = LevelUI()
-                        level_ui.add_exp(2)
+
+                        if isinstance(other, Slime):
+                            CoinUI.coin_count += 20
+                            level_ui.add_exp(5)
+                        elif isinstance(other, AngryEggMonster):
+                            CoinUI.coin_count += 2
+                            level_ui.add_exp(2)
+                        else:
+                            CoinUI.coin_count += 1
+                            level_ui.add_exp(2)
 
                         if random.random() < 0.1:
                             from hp import Heart
