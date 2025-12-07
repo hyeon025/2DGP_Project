@@ -654,7 +654,12 @@ class Boss1(Monster):
         spawn_count = min(5, self.max_skeletons - len(self.spawned_skeletons))
 
         for i in range(spawn_count):
-            skeleton = Skeleton(boss_x, boss_y, self.target)
+            offset_x = random.randint(-5, 5)
+            offset_y = random.randint(-5, 5)
+            spawn_x = boss_x + offset_x
+            spawn_y = boss_y + offset_y
+
+            skeleton = Skeleton(spawn_x, spawn_y, self.target)
             game_world.add_object(skeleton, 3)
             self.spawned_skeletons.append(skeleton)
 
