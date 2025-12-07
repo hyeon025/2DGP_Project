@@ -263,6 +263,8 @@ class Slime(Monster):
         self.size = 30
         self.speed_factor = 0.5
         self.frame_per_action = 3
+        self.shoot_cooldown = 3.0
+        self.shoot_timer = 0
 
     def update(self):
         if not self.alive:
@@ -276,6 +278,24 @@ class Slime(Monster):
 
         if self.bt:
             self.bt.run()
+
+        if self.target and self.alive:
+            self.shoot_timer += game_framework.frame_time
+            if self.shoot_timer >= self.shoot_cooldown:
+                self.shoot_bomb()
+                self.shoot_timer = 0
+
+    def shoot_bomb(self):
+        from bullet import SlimeBomb
+        bomb = SlimeBomb(self.x, self.y, self.target.x, self.target.y, damage=10)
+        game_world.add_object(bomb, 5)
+
+        if self.target:
+            game_world.add_collision_pair('bullet:player', bomb, self.target)
+            if hasattr(self.target, 'weapon') and self.target.weapon:
+                game_world.add_collision_pair('weapon:bullet', self.target.weapon, bomb)
+            if hasattr(self.target, 'skill') and self.target.skill:
+                game_world.add_collision_pair('skill:bullet', self.target.skill, bomb)
 
     def draw(self):
         cam = game_world.camera

@@ -91,6 +91,84 @@ class Bomb:
             game_world.remove_object(self)
 
 
+class SlimeBomb:
+    image = None
+
+    def __init__(self, x, y, target_x, target_y, damage=10):
+        self.x = x
+        self.y = y
+        self.damage = damage
+        self.alive = True
+        self.frame = 0
+
+        if SlimeBomb.image is None:
+            SlimeBomb.image = load_image('asset/attack/slime_bomb.png')
+
+        dx = target_x - x
+        dy = target_y - y
+        dist = math.hypot(dx, dy)
+
+        if dist > 0:
+            self.dir_x = dx / dist
+            self.dir_y = dy / dist
+        else:
+            self.dir_x = 1
+            self.dir_y = 0
+
+        self.lifetime = 5.0
+
+    def update(self):
+        if not self.alive:
+            return
+
+        self.x += self.dir_x * BULLET_SPEED_PPS * 0.5 * game_framework.frame_time
+        self.y += self.dir_y * BULLET_SPEED_PPS * 0.5 * game_framework.frame_time
+
+        self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
+
+        self.lifetime -= game_framework.frame_time
+        if self.lifetime <= 0:
+            self.alive = False
+            game_world.remove_object(self)
+
+    def draw(self):
+        if not self.alive:
+            return
+
+        cam = game_world.camera
+        if cam:
+            sx, sy = cam.to_camera(self.x, self.y)
+        else:
+            sx, sy = self.x, self.y
+
+        self.image.clip_draw(int(self.frame) * 25, 0, 25, 30, sx, sy, 40, 48)
+
+        if game_framework.show_bb:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
+
+    def get_bb(self):
+        if not self.alive:
+            return 0, 0, 0, 0
+        return self.x - 20, self.y - 24, self.x + 20, self.y + 24
+
+    def handle_collision(self, group, other):
+        if group == 'bullet:player':
+            self.alive = False
+            game_world.remove_object(self)
+        elif group == 'weapon:bullet':
+            self.alive = False
+            game_world.remove_object(self)
+        elif group == 'skill:bullet':
+            self.alive = False
+            game_world.remove_object(self)
+
+
 class BulletStone:
     image = None
     FRAME_WIDTH = 40
