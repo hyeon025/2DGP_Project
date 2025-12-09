@@ -60,6 +60,12 @@ def init():
     if player.weapon:
         game_world.add_collision_pair('weapon:monster', player.weapon, None)
 
+    if player.skill:
+        game_world.add_collision_pair('skill:monster', player.skill, None)
+
+    if player.skill2:
+        game_world.add_collision_pair('skill:monster', player.skill2, None)
+
     game_world.add_collision_pair('player:heart', player, None)
 
     camera.update(player.x, player.y)

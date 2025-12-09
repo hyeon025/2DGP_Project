@@ -180,3 +180,193 @@ class Weapon:
                         if round1.current_room == 3 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 3, self.own)
 
+
+class Assassin2Weapon:
+    image = None
+
+    def __init__(self, own, damage=25, attack_duration=0.2, cooldown=0.4):
+        if Assassin2Weapon.image is None:
+            Assassin2Weapon.image = load_image('asset/Weapon/assassin_2.png')
+        self.own = own
+        self.damage = damage
+        self.cooldown = cooldown
+        self.attack_duration = attack_duration
+        self.is_attacking = False
+
+        self.attack_timer = 0
+        self.cooldown_timer = 0
+
+        self.frame = 0
+
+        self.attack_range = 30
+        self.attack_width = 42
+        self.attack_height = 42
+
+        self.attack_dir_x = 1
+        self.attack_dir_y = 0
+
+        self.hit_monsters = set()
+
+    def attack(self):
+        if self.cooldown_timer <= 0 and not self.is_attacking:
+            self.is_attacking = True
+            self.attack_timer = self.attack_duration
+            self.cooldown_timer = self.cooldown
+            self.frame = 0
+            self.hit_monsters.clear()
+
+            self.attack_dir_x = self.own.last_move_dir_x
+            self.attack_dir_y = self.own.last_move_dir_y
+
+            if self.attack_dir_x == 0 and self.attack_dir_y == 0:
+                self.attack_dir_x = 1
+
+    def update(self):
+        if self.is_attacking:
+            self.attack_timer -= game_framework.frame_time
+
+            progress = 1.0 - (self.attack_timer / self.attack_duration)
+            self.frame = int(progress * 5)
+
+            if self.frame >= 5:
+                self.frame = 4
+
+            if self.attack_timer <= 0:
+                self.is_attacking = False
+
+        if self.cooldown_timer > 0:
+            self.cooldown_timer -= game_framework.frame_time
+
+    def draw(self):
+        if not self.is_attacking:
+            return
+
+        cam = game_world.camera
+
+        if abs(self.attack_dir_x) > abs(self.attack_dir_y):
+            offset_x = self.attack_range * self.attack_dir_x
+            wx = self.own.x + offset_x
+            wy = self.own.y - 25
+        else:
+            offset_y = self.attack_range * self.attack_dir_y
+            wx = self.own.x
+            wy = self.own.y + offset_y
+
+        if cam:
+            sx, sy = cam.to_camera(wx, wy)
+        else:
+            sx, sy = wx, wy
+
+        if Assassin2Weapon.image:
+            if abs(self.attack_dir_x) > abs(self.attack_dir_y):
+                if self.attack_dir_x > 0:
+                    Assassin2Weapon.image.clip_draw(0, 0, 63, 104, sx, sy, 63 * 1.5, 104 * 1.5)
+                else:
+                    Assassin2Weapon.image.clip_composite_draw(0, 0, 63, 104, 0, 'h', sx, sy, 63 * 1.5, 104 * 1.5)
+            else:
+                if self.attack_dir_y > 0:
+                    Assassin2Weapon.image.clip_composite_draw(0, 0, 63, 104, math.radians(90), '', sx, sy, 63 * 1.5, 104 * 1.5)
+                else:
+                    Assassin2Weapon.image.clip_composite_draw(0, 0, 63, 104, math.radians(-90), '', sx, sy, 63 * 1.5, 104 * 1.5)
+
+        knife_x = 64 + self.frame * 42
+        if abs(self.attack_dir_x) > abs(self.attack_dir_y):
+            offset_x = self.attack_range * self.attack_dir_x
+            kx = self.own.x + offset_x + (15 * self.attack_dir_x)
+            ky = self.own.y - 25
+        else:
+            offset_y = self.attack_range * self.attack_dir_y
+            kx = self.own.x
+            ky = self.own.y + offset_y + (15 * self.attack_dir_y)
+
+        if cam:
+            ksx, ksy = cam.to_camera(kx, ky)
+        else:
+            ksx, ksy = kx, ky
+
+        if Assassin2Weapon.image:
+            if abs(self.attack_dir_x) > abs(self.attack_dir_y):
+                if self.attack_dir_x > 0:
+                    Assassin2Weapon.image.clip_draw(knife_x, 0, 42, 42, ksx, ksy, 42 * 1.5, 42 * 1.5)
+                else:
+                    Assassin2Weapon.image.clip_composite_draw(knife_x, 0, 42, 42, 0, 'h', ksx, ksy, 42 * 1.5, 42 * 1.5)
+            else:
+                if self.attack_dir_y > 0:
+                    Assassin2Weapon.image.clip_composite_draw(knife_x, 0, 42, 42, math.radians(90), '', ksx, ksy, 42 * 1.5, 42 * 1.5)
+                else:
+                    Assassin2Weapon.image.clip_composite_draw(knife_x, 0, 42, 42, math.radians(-90), '', ksx, ksy, 42 * 1.5, 42 * 1.5)
+
+        if game_framework.show_bb:
+            l, b, r, t = self.get_bb()
+            if cam:
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(l, b, r, t)
+
+    def get_bb(self):
+        if not self.is_attacking:
+            return 0, 0, 0, 0
+
+        if abs(self.attack_dir_x) > abs(self.attack_dir_y):
+            offset_x = self.attack_range * self.attack_dir_x
+            wx = self.own.x + offset_x + (15 * self.attack_dir_x)
+            wy = self.own.y - 25
+            return wx - self.attack_width // 2, wy - self.attack_height // 2, wx + self.attack_width // 2, wy + self.attack_height // 2
+        else:
+            offset_y = self.attack_range * self.attack_dir_y
+            wx = self.own.x
+            wy = self.own.y + offset_y + (15 * self.attack_dir_y)
+            return wx - self.attack_width // 2, wy - self.attack_height // 2, wx + self.attack_width // 2, wy + self.attack_height // 2
+
+    def handle_collision(self, group, other):
+        if group == 'weapon:monster' and self.is_attacking:
+            if other in self.hit_monsters:
+                return
+
+            self.hit_monsters.add(other)
+
+            from monster import Boss1
+            if isinstance(other, Boss1):
+                if not other.take_damage(self.damage):
+                    return
+            else:
+                other.hp -= self.damage
+                if other.hp <= 0:
+                    other.alive = False
+                    game_world.move_object(other, 2)
+                    game_world.collision_pairs['weapon:monster'][1].remove(other)
+                    round1.rooms[round1.current_room]['num'] -= 1
+
+                    from round_1_mode import CoinUI
+                    from level import LevelUI
+                    from monster import Slime, AngryEggMonster
+
+                    level_ui = LevelUI()
+
+                    if isinstance(other, Slime):
+                        CoinUI.coin_count += 20
+                        level_ui.add_exp(5)
+                    elif isinstance(other, AngryEggMonster):
+                        CoinUI.coin_count += 2
+                        level_ui.add_exp(2)
+                    else:
+                        CoinUI.coin_count += 1
+                        level_ui.add_exp(2)
+
+                    rand_val = random.random()
+                    if rand_val < 0.1:
+                        from hp import Heart
+                        heart = Heart(other.x, other.y)
+                        game_world.add_object(heart, 3)
+                        game_world.add_collision_pair('player:heart', None, heart)
+
+                    if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.own)
+
+                    if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.own)
+
+                    if round1.current_room == 3 and all(not m.alive for m in round1.monsters):
+                        round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 3, self.own)

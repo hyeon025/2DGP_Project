@@ -1,6 +1,6 @@
 from pico2d import load_image , get_time, draw_rectangle, draw_circle
 from sdl2 import SDL_KEYDOWN, SDLK_d, SDL_KEYUP, SDLK_a, SDLK_w, SDLK_s, SDLK_SPACE, SDL_MOUSEBUTTONDOWN, \
-    SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT
+    SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT, SDLK_1, SDLK_2
 
 import round1
 from lobby import lobbyCollision
@@ -39,6 +39,12 @@ def mouse_left_down(e):
 def mouse_right_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_MOUSEBUTTONDOWN and e[1].button == SDL_BUTTON_RIGHT
 
+def key_1_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_1
+
+def key_2_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_2
+
 
 PIXEL_PER_METER = (10.0 / 0.3) # 10 pixel 30 cm
 RUN_SPEED_KMPH = 20.0 # Km / Hour
@@ -65,6 +71,12 @@ class Walk:
                 return
             if mouse_right_down(e):
                 self.player.use_skill()
+                return
+            if key_1_down(e):
+                self.player.switch_skill(1)
+                return
+            if key_2_down(e):
+                self.player.switch_skill(2)
                 return
         self.update_key_and_dir(e)
 
@@ -103,8 +115,9 @@ class Walk:
         if self.player.weapon:
             self.player.weapon.draw()
 
-        if self.player.skill:
-            self.player.skill.draw()
+        current_skill = self.player.get_current_skill()
+        if current_skill:
+            current_skill.draw()
 
     def update_key_and_dir(self, e):
         # 키 상태 업데이트
@@ -163,6 +176,12 @@ class Idle:
             if mouse_right_down(e):
                 self.player.use_skill()
                 return
+            if key_1_down(e):
+                self.player.switch_skill(1)
+                return
+            if key_2_down(e):
+                self.player.switch_skill(2)
+                return
             if d_up(e) or a_up(e) or w_up(e) or s_up(e):
                 self.update_key_and_dir(e)
                 return
@@ -193,8 +212,9 @@ class Idle:
         if self.player.weapon:
             self.player.weapon.draw()
 
-        if self.player.skill:
-            self.player.skill.draw()
+        current_skill = self.player.get_current_skill()
+        if current_skill:
+            current_skill.draw()
 
     def update_key_and_dir(self, e):
         if d_up(e):
@@ -247,6 +267,10 @@ class Player:
         self.weapon = Weapon(self, damage=15, attack_duration=0.2, cooldown=0.4)
 
         self.skill = create_skill(job.current_job,self)
+        self.skill2 = None
+
+        if job.current_job == 'assassin':
+            self.skill2 = create_skill(job.current_job + '_2', self)
 
         self.IDLE = Idle(self)
         self.WALK = Walk(self)
@@ -256,10 +280,10 @@ class Player:
             {
                 self.IDLE: {d_down: self.WALK,a_down: self.WALK,w_down: self.WALK,s_down: self.WALK,
                             d_up: self.WALK, a_up: self.WALK,w_up: self.WALK, s_up: self.WALK
-                            ,space_down:  self.IDLE, mouse_left_down: self.IDLE,mouse_right_down: self.IDLE,},
+                            ,space_down:  self.IDLE, mouse_left_down: self.IDLE,mouse_right_down: self.IDLE, key_1_down: self.IDLE, key_2_down: self.IDLE,},
                 self.WALK: {d_down: self.WALK, d_up: self.WALK,a_down: self.WALK, a_up: self.WALK,
                             w_down: self.WALK, w_up: self.WALK,s_down: self.WALK, s_up: self.WALK,
-                            space_down: self.WALK, mouse_left_down: self.WALK,mouse_right_down: self.WALK,}
+                            space_down: self.WALK, mouse_left_down: self.WALK,mouse_right_down: self.WALK, key_1_down: self.WALK, key_2_down: self.WALK,}
             })
 
     def draw(self):
@@ -323,27 +347,44 @@ class Player:
             self.invincible = True
             self.invincible_timer = self.invincible_duration
 
+    def get_current_skill(self):
+        if job.using_skill2[job.current_job] and self.skill2:
+            return self.skill2
+        return self.skill
+
     def use_skill(self):
-        if self.skill:
-            if self.skill.is_active:
+        current_skill = self.get_current_skill()
+        if current_skill:
+            if current_skill.is_active:
                 return
 
-            if hasattr(self.skill, 'can_use') and not self.skill.can_use():
+            if hasattr(current_skill, 'can_use') and not current_skill.can_use():
                 return
 
-            if self.skill not in game_world.world[2]:
-                success = self.skill.use()
+            if current_skill not in game_world.world[2]:
+                success = current_skill.use()
                 if success:
                     for obj in list(game_world.world[3]):
-                        game_world.add_collision_pair('skill:monster', self.skill, obj)
-                    game_world.add_object(self.skill, 2)
+                        game_world.add_collision_pair('skill:monster', current_skill, obj)
+                    game_world.add_object(current_skill, 2)
             else:
-                self.skill.use()
+                current_skill.use()
+
+    def switch_skill(self, skill_num):
+        if game_map.current_map != "Lobby":
+            return
+
+        if skill_num == 1:
+            job.using_skill2[job.current_job] = False
+        elif skill_num == 2:
+            if job.job_cleared[job.current_job] and self.skill2:
+                job.using_skill2[job.current_job] = True
 
     def try_change_job(self):
         if self.colliding_boss_clear_particle:
             if game_world.collide(self, self.colliding_boss_clear_particle):
                 game_map.current_map = "Lobby"
+                job.job_cleared[job.current_job] = True
                 import play_mode
                 game_framework.change_mode(play_mode)
                 return

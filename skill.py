@@ -856,10 +856,294 @@ class OfficerSkill(Skill):
             if hasattr(other, 'alive'):
                 other.alive = False
 
+class SwordAfterimage2:
+    def __init__(self, x, y, dir_x, dir_y, image, owner):
+        self.x = x
+        self.y = y
+        self.dir_x = dir_x
+        self.dir_y = dir_y
+        self.image = image
+        self.owner = owner
+
+        self.start_x = x
+        self.start_y = y
+        self.move_distance = 140
+        self.duration = 0.3
+        self.timer = self.duration
+        self.is_alive = True
+        self.damage = 30
+        self.hit_monsters = set()
+
+        if abs(dir_x) > abs(dir_y):
+            if dir_x > 0:
+                self.angle = 0
+            else:
+                self.angle = 180
+        else:
+            if dir_y > 0:
+                self.angle = 90
+            else:
+                self.angle = -90
+
+    def update(self):
+        if self.timer > 0:
+            self.timer -= game_framework.frame_time
+
+            progress = 1.0 - (self.timer / self.duration)
+
+            self.x = self.start_x + (self.dir_x * self.move_distance * progress)
+            self.y = self.start_y + (self.dir_y * self.move_distance * progress)
+
+            if self.check_out_of_bounds():
+                self.is_alive = False
+                return
+
+            if self.timer <= 0:
+                self.is_alive = False
+
+    def check_out_of_bounds(self):
+        try:
+            import map as game_map
+            import round1
+            from lobby import is_lobby_collision
+
+            if game_map.current_map == "Lobby":
+                if is_lobby_collision(self.x, self.y):
+                    return True
+
+            elif game_map.current_map == "Round_1":
+                if round1._collision_data is None:
+                    return False
+
+                scale = 10000.0 / round1._collision_width
+                img_x = int(self.x / scale)
+                img_y = int(self.y / scale)
+
+                if img_x < 0 or img_x >= round1._collision_width or img_y < 0 or img_y >= round1._collision_height:
+                    return True
+
+                pil_y = round1._collision_height - 1 - img_y
+                pixel = round1._collision_data[img_x, pil_y]
+
+                if round1._image_mode == 'RGB':
+                    r, g, b = pixel
+                elif round1._image_mode == 'RGBA':
+                    r, g, b, a = pixel
+                else:
+                    r = g = b = pixel if isinstance(pixel, int) else pixel[0]
+
+                if r < 1 and g < 1 and b < 1:
+                    return True
+
+            return False
+        except:
+            return False
+
+    def draw(self):
+        if not self.is_alive:
+            return
+
+        cam = game_world.camera
+        if cam:
+            sx, sy = cam.to_camera(self.x, self.y)
+        else:
+            sx, sy = self.x, self.y
+
+        if self.image:
+            self.image.clip_composite_draw(
+                0, 0, 63, 104,
+                math.radians(self.angle), '',
+                sx, sy, 63 * 1.5, 104 * 1.5
+            )
+
+        if game_framework.show_bb:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
+
+    def get_bb(self):
+        if not self.is_alive:
+            return 0, 0, 0, 0
+
+        half_w = 63 * 1.5 / 2
+        half_h = 104 * 1.5 / 2
+
+        if abs(self.dir_x) > abs(self.dir_y):
+            return self.x - half_w, self.y - half_h, self.x + half_w, self.y + half_h
+        else:
+            return self.x - half_h, self.y - half_w, self.x + half_h, self.y + half_w
+
+    def handle_collision(self, group, other):
+        if group == 'afterimage:monster' and self.is_alive:
+            if hasattr(other, 'hp') and getattr(other, 'alive', True) and other not in self.hit_monsters:
+                self.hit_monsters.add(other)
+
+                from monster import Boss1
+                if isinstance(other, Boss1):
+                    if not other.take_damage(self.damage):
+                        return
+                else:
+                    other.hp -= self.damage
+                    print(f"잔상 피격: 몬스터 HP={other.hp}")
+                    if other.hp <= 0:
+                        other.alive = False
+                        game_world.move_object(other, 2)
+                        import round1
+                        if round1.current_room in round1.rooms:
+                            round1.rooms[round1.current_room]['num'] -= 1
+
+                        from round_1_mode import CoinUI
+                        from level import LevelUI
+                        from monster import Slime, AngryEggMonster
+
+                        level_ui = LevelUI()
+
+                        if isinstance(other, Slime):
+                            CoinUI.coin_count += 20
+                            level_ui.add_exp(5)
+                        elif isinstance(other, AngryEggMonster):
+                            CoinUI.coin_count += 2
+                            level_ui.add_exp(2)
+                        else:
+                            CoinUI.coin_count += 1
+                            level_ui.add_exp(2)
+
+                        if random.random() < 0.1:
+                            from hp import Heart
+                            heart = Heart(other.x, other.y)
+                            game_world.add_object(heart, 3)
+                            game_world.add_collision_pair('player:heart', None, heart)
+
+                        if round1.current_room == 1 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 1, self.owner)
+
+                        if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
+
+                        if round1.current_room == 3 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 3, self.owner)
+        elif group == 'afterimage:bullet' and self.is_alive:
+            if hasattr(other, 'alive'):
+                other.alive = False
+                print(f"총알 파괴")
+
+
+class Assassin2Skill(AssassinSkill):
+    image = None
+
+    def __init__(self, owner):
+        super().__init__(owner)
+        if Assassin2Skill.image is None:
+            Assassin2Skill.image = load_image('asset/Weapon/assassin_2.png')
+        self.image = Assassin2Skill.image
+
+    def on_use(self):
+        self.skill_dir_x = self.owner.last_move_dir_x
+        self.skill_dir_y = self.owner.last_move_dir_y
+
+        if self.skill_dir_x == 0 and self.skill_dir_y == 0:
+            self.skill_dir_x = 1
+
+        self.hit_monsters.clear()
+
+        afterimage_x = self.owner.x
+        afterimage_y = self.owner.y
+
+        if abs(self.skill_dir_x) > abs(self.skill_dir_y):
+            afterimage_x += self.skill_dir_x * 30
+        else:
+            afterimage_y += self.skill_dir_y * 30
+
+        self.afterimage = SwordAfterimage2(
+            afterimage_x, afterimage_y,
+            self.skill_dir_x, self.skill_dir_y,
+            Assassin2Skill.image,
+            self.owner
+        )
+
+        game_world.add_object(self.afterimage, 2)
+        for obj in list(game_world.world[3]):
+            game_world.add_collision_pair('afterimage:monster', self.afterimage, obj)
+
+        for obj in list(game_world.world[5]):
+            game_world.add_collision_pair('afterimage:bullet', self.afterimage, obj)
+
+    def draw(self):
+        if not self.is_active:
+            return
+
+        cam = game_world.camera
+
+        sword_width = 50
+        sword_height = 50
+
+        base_angle = 0
+        flip_mode = ''
+        offset_x = 0
+        offset_y = 0
+
+        if abs(self.skill_dir_x) > abs(self.skill_dir_y):
+            if self.skill_dir_x > 0:
+                base_angle = 0
+                flip_mode = ''
+                offset_x = 20
+            else:
+                base_angle = 180
+                flip_mode = ''
+                offset_x = -20
+        else:
+            if self.skill_dir_y > 0:
+                base_angle = 90
+                flip_mode = ''
+                offset_y = 20
+            else:
+                base_angle = -90
+                flip_mode = ''
+                offset_y = -20
+
+        px = self.owner.x + offset_x
+        py = self.owner.y + offset_y
+
+        final_angle = base_angle + self.swing_angle
+
+        if cam:
+            sx, sy = cam.to_camera(px, py)
+        else:
+            sx, sy = px, py
+
+        if self.image:
+            angle_rad = math.radians(final_angle)
+
+            offset_distance_x = sword_width / 2
+            offset_distance_y = sword_height / 2
+
+            draw_x = sx + offset_distance_x * math.cos(angle_rad) - offset_distance_y * math.sin(angle_rad)
+            draw_y = sy + offset_distance_x * math.sin(angle_rad) + offset_distance_y * math.cos(angle_rad)
+
+            self.image.clip_composite_draw(
+                64, 0, 42, 42,
+                angle_rad, flip_mode,
+                draw_x, draw_y, sword_width, sword_height
+            )
+
+        if game_framework.show_bb:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
+
 def create_skill(job_name,owner):
     skill_map = {
         'alchemist': AlchemistSkill,
         'assassin': AssassinSkill,
+        'assassin_2': Assassin2Skill,
         'officer': OfficerSkill
     }
     skill_class = skill_map.get(job_name)
