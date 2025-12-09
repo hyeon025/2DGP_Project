@@ -12,6 +12,7 @@ import job
 import map as game_map
 from weapon import Weapon
 from skill import create_skill
+import play_mode
 
 def d_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_d
@@ -303,6 +304,11 @@ class Player:
 
     def update(self):
         self.state_machine.update()
+
+        if self.hp <= 0:
+            self.hp = 200
+            game_map.current_map = "Lobby"
+            game_framework.change_mode(play_mode)
 
         if self.weapon:
             self.weapon.update()
