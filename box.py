@@ -34,7 +34,7 @@ class Box:
                 draw_rectangle(*self.get_bb())
 
     def get_bb(self):
-        return self.x - 60, self.y - 60, self.x + 60, self.y + 60
+        return self.x - 40, self.y - 40, self.x + 40, self.y + 30
 
     def handle_collision(self, group, other):
         pass
