@@ -1175,13 +1175,25 @@ class Assassin2Skill(AssassinSkill):
             else:
                 draw_rectangle(*self.get_bb())
 
+class Officer2Skill(OfficerSkill):
+    image = None
+
+    def __init__(self, owner):
+        super().__init__(owner)
+        if Officer2Skill.image is None:
+            Officer2Skill.image = load_image('asset/Weapon/officer_2.png')
+        self.image = Officer2Skill.image
+        self.damage = 45  # 기본 25 + 20
+
+
 def create_skill(job_name,owner):
     skill_map = {
         'alchemist': AlchemistSkill,
         'alchemist_2': Alchemist2Skill,
         'assassin': AssassinSkill,
         'assassin_2': Assassin2Skill,
-        'officer': OfficerSkill
+        'officer': OfficerSkill,
+        'officer_2': Officer2Skill
     }
     skill_class = skill_map.get(job_name)
     if skill_class:
