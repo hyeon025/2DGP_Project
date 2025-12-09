@@ -255,6 +255,7 @@ def round1Collision(player):
                     if rooms[2]['type'] == 3:  # 상자방
                         box = Box(2015 * 2, 3185 * 2)
                         game_world.add_object(box, 3)
+                        game_world.add_collision_pair('box:player', box, player)
                     elif rooms[2]['num'] > 0:  # 몬스터방
                         change_map('asset/Map/round1_close_map.png',
                                    'asset/Map/round1_close_collision.png', 2, player)
@@ -294,6 +295,7 @@ def round1Collision(player):
                     if rooms[3]['type'] == 3:  # 상자방
                         box = Box(2015 * 2, 1900 * 2)
                         game_world.add_object(box, 3)
+                        game_world.add_collision_pair('box:player', box, player)
                     elif rooms[3]['num'] > 0:  # 몬스터방
                         change_map('asset/Map/round1_close_map.png',
                                    'asset/Map/round1_close_collision.png', 3, player)

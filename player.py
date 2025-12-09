@@ -233,6 +233,7 @@ class Player:
         self.frame = 0
         self.colliding_particle = None
         self.colliding_boss_clear_particle = None
+        self.colliding_box = None
         self.hp = 200
         self.invincible = False
         self.invincible_timer = 0
@@ -302,6 +303,8 @@ class Player:
             self.colliding_particle = other
         elif group == 'boss_clear_particle:player':
             self.colliding_boss_clear_particle = other
+        elif group == 'box:player':
+            self.colliding_box = other
         elif group == 'bullet:player':
             if not self.invincible:
                 self.hp -= other.damage
@@ -346,6 +349,14 @@ class Player:
                 return
             else:
                 self.colliding_boss_clear_particle = None
+
+        if self.colliding_box:
+            if game_world.collide(self, self.colliding_box):
+                if not self.colliding_box.opened:
+                    self.colliding_box.open()
+                return
+            else:
+                self.colliding_box = None
 
         if game_map.current_map != "Lobby" or not self.colliding_particle:
             return

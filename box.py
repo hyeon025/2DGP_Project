@@ -1,19 +1,37 @@
 from pico2d import load_image, draw_rectangle
 import game_world
 import game_framework
+import random
 
 class Box:
-    image = None
+    images = None
 
     def __init__(self, x, y):
-        if Box.image is None:
-            Box.image = load_image('asset/box/box_01.png')
-        self.image = Box.image
+        if Box.images is None:
+            Box.images = {
+                1: {
+                    'closed': load_image('asset/box/box_01.png'),
+                    'opened': load_image('asset/box/open_box_01.png')
+                },
+                2: {
+                    'closed': load_image('asset/box/box_02.png'),
+                    'opened': load_image('asset/box/open_box_02.png')
+                },
+                3: {
+                    'closed': load_image('asset/box/box_03.png'),
+                    'opened': load_image('asset/box/open_box_03.png')
+                }
+            }
         self.x = x
         self.y = y
+        self.opened = False
+        self.box_type = random.randint(1, 3)
 
     def update(self):
         pass
+
+    def open(self):
+        self.opened = True
 
     def draw(self):
         cam = game_world.camera
@@ -22,7 +40,10 @@ class Box:
         else:
             sx, sy = self.x, self.y
 
-        self.image.draw(sx, sy, 120, 120)
+        if self.opened:
+            Box.images[self.box_type]['opened'].draw(sx, sy, 120, 120)
+        else:
+            Box.images[self.box_type]['closed'].draw(sx, sy, 120, 120)
 
         if game_framework.show_bb:
             if cam:
