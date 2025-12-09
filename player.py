@@ -232,6 +232,7 @@ class Player:
         self.dir_y = 0
         self.frame = 0
         self.colliding_particle = None
+        self.colliding_boss_clear_particle = None
         self.hp = 200
         self.invincible = False
         self.invincible_timer = 0
@@ -299,6 +300,8 @@ class Player:
     def handle_collision(self, group, other):
         if group == 'particle:player':
             self.colliding_particle = other
+        elif group == 'boss_clear_particle:player':
+            self.colliding_boss_clear_particle = other
         elif group == 'bullet:player':
             if not self.invincible:
                 self.hp -= other.damage
@@ -335,6 +338,15 @@ class Player:
                 self.skill.use()
 
     def try_change_job(self):
+        if self.colliding_boss_clear_particle:
+            if game_world.collide(self, self.colliding_boss_clear_particle):
+                game_map.current_map = "Lobby"
+                import play_mode
+                game_framework.change_mode(play_mode)
+                return
+            else:
+                self.colliding_boss_clear_particle = None
+
         if game_map.current_map != "Lobby" or not self.colliding_particle:
             return
 

@@ -872,6 +872,7 @@ class Boss1(Monster):
             from particle import BossDeathParticle
             boss_particle = BossDeathParticle(6040,5115)
             game_world.add_object(boss_particle, 3)
+            game_world.add_collision_pair('boss_clear_particle:player', boss_particle, self.target)
 
         return True
 

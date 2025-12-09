@@ -49,10 +49,12 @@ def move_object(o, new_depth):
 
 
 def clear():
-    global world
+    global world, collision_pairs
 
     for layer in world:
         layer.clear()
+
+    collision_pairs.clear()
 
 
 def collide(a, b):
@@ -85,7 +87,7 @@ def add_collision_pair(group, a, b):
 
 
 def handle_collisions():
-    for group,pairs in collision_pairs.items():
+    for group,pairs in list(collision_pairs.items()):
         for a in pairs[0]:
             for b in pairs[1]:
                 if collide(a,b):
