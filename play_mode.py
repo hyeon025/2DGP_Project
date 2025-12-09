@@ -2,7 +2,7 @@ from pico2d import *
 import time
 
 import game_world
-from job import Player_job, current_job, Job
+from job import Player_job, current_job, Job, JobUI
 import map as game_map
 from player import Player
 from particle import Particle , job_selec_atf
@@ -16,7 +16,7 @@ from round_1_mode import CoinUI
 camera = Camera(world_w=5000, world_h=5000, screen_w=1200, screen_h=900)
 
 def init():
-    global world, player, player_hp_bar, coin_ui, level_ui
+    global world, player, player_hp_bar, coin_ui, level_ui, job_ui
     global job_selec_atf
 
     game_world.camera = camera
@@ -38,6 +38,9 @@ def init():
 
     level_ui = LevelUI()
     game_world.add_object(level_ui, 5)
+
+    job_ui = JobUI()
+    game_world.add_object(job_ui, 5)
 
     for x,y in [(300,340),(600,340),(900,340),(600,680)]:
         particles = Particle(x,y)
