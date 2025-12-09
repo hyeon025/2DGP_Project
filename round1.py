@@ -37,10 +37,13 @@ def reset_round():
     global rooms, current_collision_map, current_background, current_room, monsters
     global _collision_data, _collision_width, _collision_height, _image_mode
 
+    room_types = [3, 1]
+    random.shuffle(room_types)
+
     rooms = {
         1: {'type': 1, 'num': 13, 'entered': False},
-        2: {'type': 1, 'num': 14, 'entered': False},
-        3: {'type': 3, 'num': 0, 'entered': False},
+        2: {'type': room_types[0], 'num': 13 if room_types[0] == 1 else 0, 'entered': False},
+        3: {'type': room_types[1], 'num': 13 if room_types[1] == 1 else 0, 'entered': False},
         4: {'type': 2, 'num': 1, 'entered': False},
     }
 
@@ -95,14 +98,19 @@ def spawn_monsters(room_num, player):
     monster_type = rooms[room_num]['type']
 
     if room_num == 1:
-        current_monster_counts = {1: 5, 2: 5, 3: 3}  # 1 = Egg, 2 = AngryEgg, 3 = Slime
+        current_monster_counts = {1: 5, 2: 5, 3: 3}
         base_x = 1960 * 2
         base_y = 2450 * 2
 
     elif room_num == 2:
-        current_monster_counts = {1: 10, 2: 4}
+        current_monster_counts = {2: 8, 3: 5}
         base_x = 1960 * 2
-        base_y = 3140 * 2
+        base_y = 3130 * 2
+
+    elif room_num == 3:
+        current_monster_counts = {2: 8, 3: 5}
+        base_x = 1960 * 2
+        base_y = 1800 * 2
 
     elif room_num == 4:
         base_x = 6040
@@ -244,7 +252,10 @@ def round1Collision(player):
                 # 2번방 입장
                 if not rooms[2]['entered']:
                     rooms[2]['entered'] = True
-                    if rooms[2]['num'] > 0:
+                    if rooms[2]['type'] == 3:  # 상자방
+                        box = Box(2015 * 2, 3185 * 2)
+                        game_world.add_object(box, 3)
+                    elif rooms[2]['num'] > 0:  # 몬스터방
                         change_map('asset/Map/round1_close_map.png',
                                    'asset/Map/round1_close_collision.png', 2, player)
                         spawn_monsters(2, player)
@@ -280,13 +291,13 @@ def round1Collision(player):
                 #3번방 입장
                 if not rooms[3]['entered']:
                     rooms[3]['entered'] = True
-                    if rooms[3]['type'] == 3: #상자방 검사
+                    if rooms[3]['type'] == 3:  # 상자방
                         box = Box(2015 * 2, 1900 * 2)
                         game_world.add_object(box, 3)
-                    elif rooms[3]['num'] > 0:
+                    elif rooms[3]['num'] > 0:  # 몬스터방
                         change_map('asset/Map/round1_close_map.png',
                                    'asset/Map/round1_close_collision.png', 3, player)
-                        # spawn_monsters(3, player)
+                        spawn_monsters(3, player)
                     else:
                         change_map('asset/Map/round1_map.png',
                                    'asset/Map/round1_collision.png', 3, player)

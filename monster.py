@@ -175,8 +175,20 @@ class Monster:
             ny = dy / dist
             self.dir_x = nx
             self.dir_y = ny
-            self.x += self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
-            self.y += self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+
+            old_x = self.x
+            old_y = self.y
+
+            new_x = self.x + self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+            new_y = self.y + self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+
+            # 충돌 검사
+            if is_valid_position(new_x, new_y, margin_meters=0.5):
+                self.x = new_x
+                self.y = new_y
+            else:
+                self.x = old_x
+                self.y = old_y
 
             if self.dir_x > 0:
                 self.face_dir = 1
@@ -224,8 +236,19 @@ class Monster:
             ny = dy / dist
             self.dir_x = nx
             self.dir_y = ny
-            self.x += self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
-            self.y += self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+
+            old_x = self.x
+            old_y = self.y
+
+            new_x = self.x + self.dir_x * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+            new_y = self.y + self.dir_y * RUN_SPEED_PPS * self.speed_factor * game_framework.frame_time
+
+            if is_valid_position(new_x, new_y, margin_meters=0.5):
+                self.x = new_x
+                self.y = new_y
+            else:
+                self.x = old_x
+                self.y = old_y
 
             if self.dir_x > 0:
                 self.face_dir = 1

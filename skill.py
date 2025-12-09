@@ -250,6 +250,9 @@ class AlchemistSkill(Skill):
 
                         if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
+
+                        if round1.current_room == 3 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 3, self.owner)
         elif group == 'skill:bullet' and (not self.is_active) and self.explosion_timer > 0 and self.should_show_mark:
             if hasattr(other, 'alive'):
                 other.alive = False
@@ -422,6 +425,9 @@ class SwordAfterimage:
 
                         if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
+
+                        if round1.current_room == 3 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 3, self.owner)
         elif group == 'afterimage:bullet' and self.is_alive:
             if hasattr(other, 'alive'):
                 other.alive = False
@@ -634,6 +640,9 @@ class AssassinSkill(Skill):
 
                         if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
+
+                        if round1.current_room == 3 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 3, self.owner)
         elif group == 'skill:bullet' and self.is_active:
             if hasattr(other, 'alive'):
                 other.alive = False
@@ -840,6 +849,9 @@ class OfficerSkill(Skill):
 
                         if round1.current_room == 2 and all(not m.alive for m in round1.monsters):
                             round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 2, self.owner)
+
+                        if round1.current_room == 3 and all(not m.alive for m in round1.monsters):
+                            round1.change_map('asset/Map/round1_map.png', 'asset/Map/round1_collision.png', 3, self.owner)
         elif group == 'skill:bullet' and self.is_active:
             if hasattr(other, 'alive'):
                 other.alive = False
