@@ -11,7 +11,7 @@ from box import Box
 _background_cache = {}
 
 rooms = {
-    1: {'type': 1, 'num': 23, 'entered': False},
+    1: {'type': 1, 'num': 13, 'entered': False},
     2: {'type': 1, 'num': 14, 'entered': False},
     3: {'type': 3, 'num': 0, 'entered': False},
     4: {'type': 2, 'num': 1, 'entered': False},
@@ -38,7 +38,7 @@ def reset_round():
     global _collision_data, _collision_width, _collision_height, _image_mode
 
     rooms = {
-        1: {'type': 1, 'num': 23, 'entered': False},
+        1: {'type': 1, 'num': 13, 'entered': False},
         2: {'type': 1, 'num': 14, 'entered': False},
         3: {'type': 3, 'num': 0, 'entered': False},
         4: {'type': 2, 'num': 1, 'entered': False},
@@ -95,7 +95,7 @@ def spawn_monsters(room_num, player):
     monster_type = rooms[room_num]['type']
 
     if room_num == 1:
-        current_monster_counts = {1: 10, 2: 10, 3: 3}  # 1 = Egg, 2 = AngryEgg, 3 = Slime
+        current_monster_counts = {1: 5, 2: 5, 3: 3}  # 1 = Egg, 2 = AngryEgg, 3 = Slime
         base_x = 1960 * 2
         base_y = 2450 * 2
 
