@@ -6,11 +6,12 @@ import game_framework
 import game_world
 from monster import Monster, AngryEggMonster, EggMonster, Boss1, Slime
 from hp import BossHPBar, MonsterHPBar
+from box import Box
 
 _background_cache = {}
 
 rooms = {
-    1: {'type': 1, 'num': 23, 'entered': False},  # Egg(10) + AngryEgg(10) + Slime(3)
+    1: {'type': 1, 'num': 23, 'entered': False},
     2: {'type': 1, 'num': 14, 'entered': False},
     3: {'type': 3, 'num': 0, 'entered': False},
     4: {'type': 2, 'num': 1, 'entered': False},
@@ -279,7 +280,10 @@ def round1Collision(player):
                 #3번방 입장
                 if not rooms[3]['entered']:
                     rooms[3]['entered'] = True
-                    if rooms[3]['num'] > 0:
+                    if rooms[3]['type'] == 3: #상자방 검사
+                        box = Box(2015 * 2, 1900 * 2)
+                        game_world.add_object(box, 3)
+                    elif rooms[3]['num'] > 0:
                         change_map('asset/Map/round1_close_map.png',
                                    'asset/Map/round1_close_collision.png', 3, player)
                         # spawn_monsters(3, player)
