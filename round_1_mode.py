@@ -31,6 +31,8 @@ class CoinUI:
 def init():
     global player, map_obj, player_hp_bar, coin_ui, level_ui
 
+    round1.reset_round()
+
     game_world.camera = camera
 
     map_obj = game_map.Game_Map(game_map.Map[game_map.current_map])

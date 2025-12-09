@@ -32,6 +32,27 @@ RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
 
 
+def reset_round():
+    global rooms, current_collision_map, current_background, current_room, monsters
+    global _collision_data, _collision_width, _collision_height, _image_mode
+
+    rooms = {
+        1: {'type': 1, 'num': 23, 'entered': False},
+        2: {'type': 1, 'num': 14, 'entered': False},
+        3: {'type': 3, 'num': 0, 'entered': False},
+        4: {'type': 2, 'num': 1, 'entered': False},
+    }
+
+    current_collision_map = 'asset/Map/round1_collision.png'
+    current_background = 'asset/Map/round1_map.png'
+    current_room = None
+    monsters = []
+
+    _collision_data = None
+    _collision_width = 0
+    _collision_height = 0
+    _image_mode = None
+
 def preload_backgrounds():
     global _background_cache
     bg_paths = [
