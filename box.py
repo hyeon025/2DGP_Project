@@ -48,6 +48,9 @@ class Box:
                 self.reward_amount = random.randint(50, 200)
             self.show_reward_timer = 1.0
 
+            from round_1_mode import CoinUI
+            CoinUI.coin_count += self.reward_amount
+
     def draw(self):
         cam = game_world.camera
         if cam:
