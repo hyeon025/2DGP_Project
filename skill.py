@@ -856,6 +856,42 @@ class OfficerSkill(Skill):
             if hasattr(other, 'alive'):
                 other.alive = False
 
+class Alchemist2Skill(AlchemistSkill):
+    image = None
+
+    def __init__(self, owner):
+        super().__init__(owner)
+        if Alchemist2Skill.image is None:
+            Alchemist2Skill.image = load_image('asset/Weapon/alchemist_2.png')
+        self.image = Alchemist2Skill.image
+        self.damage = 60
+
+    def draw(self):
+        cam = game_world.camera
+        if cam:
+            sx, sy = cam.to_camera(self.throw_x, self.throw_y)
+            tx, ty = cam.to_camera(self.target_x, self.target_y)
+        else:
+            sx, sy = self.throw_x, self.throw_y
+            tx, ty = self.target_x, self.target_y
+
+        if self.is_active:
+            if self.image:
+                self.image.clip_draw(0, 21, 21, 14, sx, sy, 30, 20)
+
+        if not self.is_active and self.explosion_timer > 0 and self.should_show_mark:
+            if self.image:
+                self.image.clip_draw(21, 0, 61, 61, tx, ty, 60, 60)
+
+        if game_framework.show_bb:
+            if cam:
+                l, b, r, t = self.get_bb()
+                sl, sb = cam.to_camera(l, b)
+                sr, st = cam.to_camera(r, t)
+                draw_rectangle(sl, sb, sr, st)
+            else:
+                draw_rectangle(*self.get_bb())
+
 class SwordAfterimage2:
     def __init__(self, x, y, dir_x, dir_y, image, owner):
         self.x = x
@@ -1142,6 +1178,7 @@ class Assassin2Skill(AssassinSkill):
 def create_skill(job_name,owner):
     skill_map = {
         'alchemist': AlchemistSkill,
+        'alchemist_2': Alchemist2Skill,
         'assassin': AssassinSkill,
         'assassin_2': Assassin2Skill,
         'officer': OfficerSkill

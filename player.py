@@ -269,7 +269,7 @@ class Player:
         self.skill = create_skill(job.current_job,self)
         self.skill2 = None
 
-        if job.current_job == 'assassin':
+        if job.current_job in ['alchemist', 'assassin']:
             self.skill2 = create_skill(job.current_job + '_2', self)
 
         self.IDLE = Idle(self)
@@ -433,3 +433,6 @@ class Player:
                     if job_name in Player_job:
                         self.change_job(Player_job[job_name])
                         self.skill = create_skill(job_name,self)
+                        self.skill2 = None
+                        if job_name in ['alchemist', 'assassin']:
+                            self.skill2 = create_skill(job_name + '_2', self)
